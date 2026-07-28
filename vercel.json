@@ -2,6 +2,10 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "buildCommand": "prisma generate && next build",
+
+  "//regions": "Must match the Neon database region. Functions default to iad1 (Washington DC); leaving them there with a Sydney database adds ~200ms to every query, and Prisma makes several per page.",
+  "regions": ["syd1"],
+
   "functions": {
     "app/**": {
       "maxDuration": 60
