@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   IconDashboard, IconPurchase, IconShip, IconFactory,
-  IconHandshake, IconBook, IconUsers, IconLogout,
+  IconHandshake, IconBook, IconUsers, IconLogout, IconSettings,
 } from "@/components/icons";
 
 const NAV = [
@@ -19,6 +19,7 @@ const NAV = [
   { section: "Setup", items: [
     { href: "/info", label: "Info", Icon: IconBook },
     { href: "/users", label: "Users", Icon: IconUsers, role: ["ADMIN"] },
+    { href: "/settings", label: "Settings", Icon: IconSettings, role: ["ADMIN"] },
   ]},
 ];
 
