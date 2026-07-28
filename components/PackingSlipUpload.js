@@ -51,7 +51,7 @@ export default function PackingSlipUpload({ booking, action }) {
               <input type="hidden" name="bookingId" value={id} />
               <input
                 type="file" name="file" required
-                accept=".pdf,.png,.jpg,.jpeg,.webp,.heic,.docx,.doc"
+                accept=".pdf,.png,.jpg,.jpeg,.webp,.heic,.docx"
                 className="input file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-white hover:file:bg-brand-700"
               />
               <p className="mt-2 text-2xs text-ink-400">
