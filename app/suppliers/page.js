@@ -110,9 +110,8 @@ export default async function Suppliers({ searchParams }) {
         <div className="alert-warn mb-5">
           <IconAlert size={18} className="mt-0.5 shrink-0" />
           <div>
-            <b>No extraction key set.</b> Add <code className="rounded bg-white px-1">GEMINI_API_KEY</code> or{" "}
-            <code className="rounded bg-white px-1">MISTRAL_API_KEY</code> to <code className="rounded bg-white px-1">.env</code>,
-            or type the values straight into each row.
+            <b>No extraction key set.</b> Add <code className="rounded bg-white px-1">GEMINI_API_KEY</code> to{" "}
+            <code className="rounded bg-white px-1">.env</code>, or type the values straight into each row.
           </div>
         </div>
       )}
@@ -144,11 +143,10 @@ export default async function Suppliers({ searchParams }) {
           <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-500">
             <span>{withSlip} of {allLines.length} containers have packing slip details</span>
             <span className="text-2xs text-ink-400">
-              Readers:{" "}
-              {extractionProviders().map((p, i) => (
-                <span key={p.name}>
-                  {i > 0 && " → "}
-                  <span className={p.ready ? "font-medium text-ink-600" : "line-through"}>{p.name}</span>
+              Reader:{" "}
+              {extractionProviders().map(p => (
+                <span key={p.name} className={p.ready ? "font-medium text-ink-600" : "line-through"}>
+                  {p.name}
                 </span>
               ))}
             </span>

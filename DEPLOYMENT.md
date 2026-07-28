@@ -94,10 +94,6 @@ values) is the one that gets committed.
 | `GEMINI_API_KEY` | optional — packing slips |
 | `GEMINI_MODEL` | optional — `gemini-2.0-flash` |
 | `GEMINI_FALLBACK_MODELS` | optional — `gemini-2.0-flash-lite,gemini-2.5-flash,gemini-1.5-flash` |
-| `MISTRAL_API_KEY` | optional — packing slip fallback |
-| `MISTRAL_MODEL` | optional — `pixtral-12b-2409` |
-| `MISTRAL_OCR_MODEL` | optional — `mistral-ocr-latest` |
-| `MISTRAL_TEXT_MODEL` | optional — `mistral-small-latest` |
 
 If you created the database through Vercel Storage, `DATABASE_URL` is injected
 for you — don't add it twice.

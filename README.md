@@ -148,25 +148,18 @@ Each file is named after its randomly generated booking number, so repeat runs a
 
 ### AI (packing slips only)
 
-Packing slips still need AI — supplier slips vary wildly and are often phone photos. Two providers are configured and tried in order:
+Packing slips still need AI — supplier slips vary wildly and are often phone photos. **Gemini** is the reader. On a rate limit it waits and retries, then works through `GEMINI_FALLBACK_MODELS`, each of which carries its own quota.
 
-1. **Gemini** — on a rate limit it waits and retries, then falls back through `GEMINI_FALLBACK_MODELS` (each model has its own quota).
-2. **Mistral** — takes over if Gemini is missing, exhausted or failing. Photos go to the vision model; PDFs are run through Mistral's OCR endpoint first, then read as text.
+The reader is named in the green confirmation banner and recorded as `_readBy` inside the stored extraction. If it fails, the error repeats what Gemini said and reminds you the fields can simply be typed in.
 
-Whichever succeeds is named in the green confirmation banner and recorded as `_readBy` inside the stored extraction, so you can always tell which provider produced a value. If both fail, the error names what each one said and reminds you the fields can simply be typed in.
-
-The Supplier tab shows the active chain under the heading — a provider with no key set appears struck through.
+The Supplier tab shows the reader under the heading — struck through when no key is set.
 
 | Variable | Purpose |
 |---|---|
 | `GEMINI_API_KEY` | Primary reader |
 | `GEMINI_FALLBACK_MODELS` | Models tried when the main one is limited |
-| `MISTRAL_API_KEY` | Fallback reader |
-| `MISTRAL_MODEL` | Vision model for photos (`pixtral-12b-2409`) |
-| `MISTRAL_OCR_MODEL` | OCR for PDFs (`mistral-ocr-latest`) |
-| `MISTRAL_TEXT_MODEL` | Reads the OCR'd text (`mistral-small-latest`) |
 
-Either key can be removed and the other still works. With neither, the Supplier tab still accepts typed values.
+Without a key the Supplier tab still works — the values just have to be typed in.
 
 Quota errors (429) therefore only ever affect packing slips now — booking and PO imports are unaffected. If you don't want AI at all, the Supplier tab's fields can be typed in directly and the upload skipped.
 
@@ -185,6 +178,6 @@ Also pre-loaded: 2 suppliers, 2 buyers, Maersk/MSC/ONE + forwarder + CHA, 3 prod
 
 ## Tech
 
-Next.js 14 (App Router, server actions) · Prisma 6 with a Rust-free client and the `pg` driver adapter (no engine downloads, proxy-safe) · PostgreSQL · Tailwind · pdf-lib for PO generation · pdfjs-dist for reading them · Gemini and Mistral REST for packing slips.
+Next.js 14 (App Router, server actions) · Prisma 6 with a Rust-free client and the `pg` driver adapter (no engine downloads, proxy-safe) · PostgreSQL · Tailwind · pdf-lib for PO generation · pdfjs-dist for reading them · Gemini REST for packing slips.
 
 PO PDFs embed Liberation Sans from `public/fonts` so Māori macrons and other extended Latin characters render correctly (e.g. "East Tāmaki").
