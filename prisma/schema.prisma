@@ -1,0 +1,481 @@
+generator client {
+  provider        = "prisma-client-js"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===== Users & Roles =====
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String
+  password  String
+  role      String   @default("USER") // ADMIN | MANAGER | USER
+  region    String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  salesOrders SalesOrder[]
+  auditLogs AuditLog[]
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String
+  entity    String
+  entityId  Int?
+  detail    String?
+  createdAt DateTime @default(now())
+}
+
+// ===== Partners (buyers, vendors, customers, shipping lines, forwarders, CHA) =====
+model Partner {
+  id             Int     @id @default(autoincrement())
+  name           String
+  type           String  // BUYER | VENDOR | CUSTOMER | SHIPPING_LINE | FORWARDER | CHA
+  email          String?
+  phone          String?
+  taxId          String?
+  fiscalPosition String? // e.g. Domestic, Export, SEZ
+  currency       String  @default("USD")
+  country        String?
+  region         String?
+  paymentTerms   String? // e.g. NET30, ADVANCE, LC
+  incoterm       String? // FOB, CIF, EXW...
+  shippingTerms  String?
+  notes          String?
+  active         Boolean @default(true)
+  createdAt      DateTime @default(now())
+
+  addresses      Address[]
+  banks          BankAccount[]
+  contacts       ContactPerson[]
+  pricelists     PricelistItem[]
+  purchaseOrders PurchaseOrder[]
+  salesOrders    SalesOrder[]
+  invoices       Invoice[]
+  payments       Payment[]
+  bookingsAsLine      Booking[] @relation("shippingLine")
+  bookingsAsForwarder Booking[] @relation("forwarder")
+  bookingsAsCha       Booking[] @relation("cha")
+  bookingsAsBuyer     Booking[] @relation("bookingBuyer")
+  linesAsSupplier     BookingLine[] @relation("lineSupplier")
+  linesAsBuyer        BookingLine[] @relation("lineBuyer")
+  catalog        PartnerProduct[]
+}
+
+model Address {
+  id        Int     @id @default(autoincrement())
+  partnerId Int
+  partner   Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  type      String  // BILLING | SHIPPING
+  line1     String
+  line2     String?
+  city      String?
+  state     String?
+  country   String?
+  zip       String?
+}
+
+model BankAccount {
+  id        Int     @id @default(autoincrement())
+  partnerId Int
+  partner   Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  bankName  String
+  accountNo String
+  swift     String?
+  iban      String?
+  currency  String  @default("USD")
+}
+
+model ContactPerson {
+  id        Int     @id @default(autoincrement())
+  partnerId Int
+  partner   Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  name      String
+  role      String?
+  email     String?
+  phone     String?
+}
+
+// ===== Products =====
+model Product {
+  id        Int     @id @default(autoincrement())
+  sku       String  @unique
+  name      String
+  category  String?
+  grade     String?
+  uom       String  @default("KG") // KG, MT, PCS, CBM...
+  weightKg  Float   @default(0)
+  volumeCbm Float   @default(0)
+  taxRate   Float   @default(0)
+  costPrice Float   @default(0)
+  salePrice Float   @default(0)
+  active    Boolean @default(true)
+
+  pricelistItems PricelistItem[]
+  poLines        PurchaseOrderLine[]
+  soLines        SalesOrderLine[]
+  partnerLinks   PartnerProduct[]
+  stocks         Stock[]
+  invoiceLines   InvoiceLine[]
+  bookingLines   BookingLine[]
+}
+
+model PartnerProduct {
+  id        Int     @id @default(autoincrement())
+  partnerId Int
+  partner   Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  buyerSku  String?
+  @@unique([partnerId, productId])
+}
+
+model PricelistItem {
+  id        Int     @id @default(autoincrement())
+  partnerId Int
+  partner   Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  price     Float
+  currency  String  @default("USD")
+  minQty    Float   @default(0)
+  validFrom DateTime?
+  validTo   DateTime?
+}
+
+// ===== Purchase =====
+model PurchaseOrder {
+  id           Int      @id @default(autoincrement())
+  number       String   @unique
+  partnerId    Int
+  partner      Partner  @relation(fields: [partnerId], references: [id])
+  orderDate    DateTime @default(now())
+  status       String   @default("DRAFT") // DRAFT | CONFIRMED | RECEIVED | BILLED | CANCELLED
+  currency     String   @default("USD")
+  exchangeRate Float    @default(1)
+  paymentTerms String?
+  incoterm     String?
+  shippingTerms String?
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  lines      PurchaseOrderLine[]
+  bookings   Booking[]
+  documents  Document[]
+  invoices   Invoice[] // vendor bills
+  bookingLines BookingLine[]
+  sourceFile    String?
+  extractedJson String?
+  fromBookingId Int?
+  fromBooking   Booking? @relation("bookingPos", fields: [fromBookingId], references: [id])
+}
+
+model PurchaseOrderLine {
+  id        Int     @id @default(autoincrement())
+  poId      Int
+  po        PurchaseOrder @relation(fields: [poId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  qty       Float
+  uom       String  @default("KG")
+  grade     String?
+  price     Float
+  taxRate   Float   @default(0)
+  containerId Int?
+  container   Container? @relation(fields: [containerId], references: [id])
+}
+
+// ===== Booking =====
+model Booking {
+  id             Int      @id @default(autoincrement())
+  number         String   @unique
+  bookingDate    DateTime @default(now())
+  status         String   @default("DRAFT") // DRAFT | CONFIRMED | SHIPPED | DELIVERED | CLOSED | CANCELLED
+  shippingLineId Int?
+  shippingLine   Partner? @relation("shippingLine", fields: [shippingLineId], references: [id])
+  forwarderId    Int?
+  forwarder      Partner? @relation("forwarder", fields: [forwarderId], references: [id])
+  chaId          Int?
+  cha            Partner? @relation("cha", fields: [chaId], references: [id])
+  vessel         String?
+  voyage         String?
+  pol            String?  // port of loading
+  pod            String?  // port of discharge
+  cutoffDate     DateTime?
+  etd            DateTime?
+  eta            DateTime?
+  totalWeightKg  Float    @default(0)
+  totalVolumeCbm Float    @default(0)
+  notes          String?
+  createdAt      DateTime @default(now())
+
+  poId       Int?
+  po         PurchaseOrder? @relation(fields: [poId], references: [id])
+  containers Container[]
+  documents  Document[]
+  invoices   Invoice[]
+
+  buyerId    Int?
+  buyer      Partner? @relation("bookingBuyer", fields: [buyerId], references: [id])
+  sourceFile String?
+  extractedJson String?
+  lines      BookingLine[]
+  purchaseOrders PurchaseOrder[] @relation("bookingPos")
+
+  // ===== Tracking sheet columns =====
+  freightForwarder String?   // A
+  placeOfDelivery  String?   // H
+  pricePerContainer Float?   // I  (USD)
+  bookedContainers Int?      // J
+  loadedContainers Int?      // K
+  otherContainers  String?   // L  (if cancelled: WO/Charge or W/Charge)
+  erd              DateTime? // M  earliest receiving / empty pick-up date
+  docsCutOff       DateTime? // N
+  cargoCutOff      DateTime? // O
+  siSentDate       DateTime? // P
+  containerType    String?   // e.g. 40 DRY HC
+  commodity        String?
+  serviceContract  String?
+}
+
+// ===== Booking Lines (one row per container / lot) =====
+model BookingLine {
+  id          Int     @id @default(autoincrement())
+  bookingId   Int
+  booking     Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  lineNo      Int     @default(1)
+
+  // from booking import
+  description   String?
+  quantity      Float?
+  qtyUnit       String?  // Loads | MT | Containers
+  containerNo   String?
+  containerType String?
+  sealNo        String?
+
+  // supplier + product allocation (set when generating PO)
+  supplierId  Int?
+  supplier    Partner? @relation("lineSupplier", fields: [supplierId], references: [id])
+  productId   Int?
+  product     Product? @relation(fields: [productId], references: [id])
+  price       Float?
+  priceUnit   String?  // e.g. "/ MT"
+  pricingTerm String?  // e.g. "FAS (Auckland)"
+  poId        Int?
+  po          PurchaseOrder? @relation(fields: [poId], references: [id])
+
+  // packing slip extraction
+  packingSlipFile String?
+  packingSlipJson String?
+  netWeightKg   Float?
+  grossWeightKg Float?
+  packages      Int?
+  packingDate   DateTime?
+
+  // buyer allocation
+  buyerId     Int?
+  buyer       Partner? @relation("lineBuyer", fields: [buyerId], references: [id])
+  salePrice   Float?
+  saleTerms   String?
+  buyerAllocatedAt DateTime?
+
+  createdAt   DateTime @default(now())
+}
+
+// ===== Ports master =====
+model Port {
+  id      Int    @id @default(autoincrement())
+  code    String @unique
+  name    String
+  country String?
+}
+
+// ===== Company settings (PO header) =====
+model CompanySetting {
+  id             Int    @id @default(autoincrement())
+  name           String @default("SOURCEONE")
+  legalName      String @default("VENTURES NZ LTD")
+  address        String @default("Greenvalley Rise, Glenfield, Auckland - 0629, New Zealand.")
+  gstNo          String @default("143-154-076")
+  importExportNo String @default("40735917J")
+  phone          String @default("+64 (027) 350 1499")
+  email          String @default("Info@sourceoneventures.nz")
+  poPrefix       String @default("NZP")
+  minimumWeight  String @default("20 MT.")
+  defaultComments String @default("Currency mentioned is in USD")
+}
+
+// ===== Container =====
+model Container {
+  id           Int      @id @default(autoincrement())
+  number       String   @unique
+  type         String   @default("40HC") // 20GP | 40GP | 40HC | RF...
+  capacityKg   Float    @default(26000)
+  status       String   @default("PLANNED") // PLANNED | LOADED | IN_TRANSIT | ARRIVED | DELIVERED
+  bookingId    Int?
+  booking      Booking? @relation(fields: [bookingId], references: [id])
+  etd          DateTime?
+  eta          DateTime?
+  gateIn       DateTime?
+  gateOut      DateTime?
+  freightCost  Float    @default(0)
+  currency     String   @default("USD")
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  poLines     PurchaseOrderLine[]
+  soLines     SalesOrderLine[]
+  landedCosts LandedCost[]
+  documents   Document[]
+}
+
+model LandedCost {
+  id          Int       @id @default(autoincrement())
+  containerId Int
+  container   Container @relation(fields: [containerId], references: [id], onDelete: Cascade)
+  costType    String    // FREIGHT | DUTY | INSURANCE | CHA_FEES | TRANSPORT | OTHER
+  description String?
+  amount      Float
+  currency    String    @default("USD")
+  date        DateTime  @default(now())
+}
+
+// ===== Sales =====
+model SalesOrder {
+  id            Int      @id @default(autoincrement())
+  number        String   @unique
+  partnerId     Int
+  partner       Partner  @relation(fields: [partnerId], references: [id])
+  orderDate     DateTime @default(now())
+  status        String   @default("DRAFT") // DRAFT | CONFIRMED | DELIVERED | INVOICED | CANCELLED
+  currency      String   @default("USD")
+  exchangeRate  Float    @default(1)
+  deliveryDate  DateTime?
+  salespersonId Int?
+  salesperson   User?    @relation(fields: [salespersonId], references: [id])
+  commissionType String? // PERCENT | FIXED
+  commissionValue Float  @default(0)
+  salesTerms    String?
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  lines     SalesOrderLine[]
+  documents Document[]
+  invoices  Invoice[]
+}
+
+model SalesOrderLine {
+  id        Int     @id @default(autoincrement())
+  soId      Int
+  so        SalesOrder @relation(fields: [soId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  qty       Float
+  uom       String  @default("KG")
+  price     Float
+  taxRate   Float   @default(0)
+  containerId Int?
+  container   Container? @relation(fields: [containerId], references: [id])
+}
+
+// ===== Accounting =====
+model Invoice {
+  id           Int      @id @default(autoincrement())
+  number       String   @unique
+  type         String   // CUSTOMER_INVOICE | VENDOR_BILL | CREDIT_NOTE | DEBIT_NOTE
+  partnerId    Int
+  partner      Partner  @relation(fields: [partnerId], references: [id])
+  date         DateTime @default(now())
+  dueDate      DateTime?
+  status       String   @default("DRAFT") // DRAFT | POSTED | PAID | CANCELLED
+  currency     String   @default("USD")
+  exchangeRate Float    @default(1)
+  region       String?
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  soId      Int?
+  so        SalesOrder? @relation(fields: [soId], references: [id])
+  poId      Int?
+  po        PurchaseOrder? @relation(fields: [poId], references: [id])
+  bookingId Int?
+  booking   Booking? @relation(fields: [bookingId], references: [id])
+
+  lines    InvoiceLine[]
+  payments Payment[]
+  documents Document[]
+}
+
+model InvoiceLine {
+  id        Int     @id @default(autoincrement())
+  invoiceId Int
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  productId Int?
+  product   Product? @relation(fields: [productId], references: [id])
+  description String
+  qty       Float   @default(1)
+  price     Float
+  taxRate   Float   @default(0)
+}
+
+model Payment {
+  id        Int      @id @default(autoincrement())
+  invoiceId Int
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id])
+  partnerId Int
+  partner   Partner  @relation(fields: [partnerId], references: [id])
+  date      DateTime @default(now())
+  amount    Float
+  currency  String   @default("USD")
+  method    String?  // WIRE | LC | CASH | OTHER
+  reference String?
+}
+
+// ===== Inventory =====
+model Warehouse {
+  id       Int     @id @default(autoincrement())
+  code     String  @unique
+  name     String
+  country  String?
+  type     String  @default("STANDARD") // STANDARD | CROSS_DOCK | DROPSHIP
+  stocks   Stock[]
+}
+
+model Stock {
+  id          Int       @id @default(autoincrement())
+  warehouseId Int
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+  productId   Int
+  product     Product   @relation(fields: [productId], references: [id])
+  qty         Float     @default(0)
+  unitCost    Float     @default(0) // landed cost
+  @@unique([warehouseId, productId])
+}
+
+// ===== Documents =====
+model Document {
+  id        Int      @id @default(autoincrement())
+  name      String
+  docType   String   // BL | PL | CUSTOMS | INVOICE | OTHER
+  fileName  String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  poId        Int?
+  po          PurchaseOrder? @relation(fields: [poId], references: [id])
+  bookingId   Int?
+  booking     Booking? @relation(fields: [bookingId], references: [id])
+  containerId Int?
+  container   Container? @relation(fields: [containerId], references: [id])
+  soId        Int?
+  so          SalesOrder? @relation(fields: [soId], references: [id])
+  invoiceId   Int?
+  invoice     Invoice? @relation(fields: [invoiceId], references: [id])
+}

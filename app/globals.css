@@ -1,0 +1,159 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-ink-50 text-ink-800;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  /* Figures line up in columns — essential for a data-heavy app */
+  table, .tnum { font-variant-numeric: tabular-nums; }
+
+  h1, h2, h3 { @apply text-ink-900; letter-spacing: -0.011em; }
+
+  ::selection { @apply bg-brand-100 text-brand-900; }
+
+  /* Slim scrollbars that don't fight the layout */
+  * { scrollbar-width: thin; scrollbar-color: theme("colors.ink.200") transparent; }
+  *::-webkit-scrollbar { height: 10px; width: 10px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-ink-200;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-thumb:hover { @apply bg-ink-300; background-clip: content-box; }
+}
+
+@layer components {
+  /* ---------------------------------------------------------------- buttons */
+  .btn-base {
+    @apply inline-flex select-none items-center justify-center gap-1.5 whitespace-nowrap
+           rounded-lg text-sm font-medium transition-all duration-150
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40
+           focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50;
+    padding: 0.4375rem 0.875rem;
+  }
+  .btn {
+    @apply btn-base bg-brand-600 text-white shadow-xs
+           hover:bg-brand-700 hover:shadow-sm active:scale-[0.98];
+  }
+  .btn-secondary {
+    @apply btn-base border border-ink-200 bg-white text-ink-700 shadow-xs
+           hover:border-ink-300 hover:bg-ink-50 active:scale-[0.98];
+  }
+  .btn-ghost {
+    @apply btn-base text-ink-600 hover:bg-ink-100 hover:text-ink-900 active:scale-[0.98];
+  }
+  .btn-danger {
+    @apply btn-base bg-red-600 text-white shadow-xs hover:bg-red-700 active:scale-[0.98];
+  }
+  .btn-sm { padding: 0.25rem 0.625rem; @apply gap-1 rounded-md text-xs; }
+  .icon-btn {
+    @apply inline-flex h-7 w-7 items-center justify-center rounded-md text-ink-400
+           transition-colors hover:bg-ink-100 hover:text-ink-700
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40;
+  }
+  .icon-btn-danger { @apply icon-btn hover:bg-red-50 hover:text-red-600; }
+
+  /* ---------------------------------------------------------------- forms */
+  .input {
+    @apply w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900
+           shadow-xs transition-shadow duration-150 placeholder:text-ink-300
+           focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/10
+           disabled:bg-ink-50 disabled:text-ink-400;
+  }
+  select.input {
+    @apply cursor-pointer appearance-none bg-no-repeat pr-8;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23657391' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.5rem center;
+    background-size: 1.15rem;
+  }
+  .input-sm { @apply rounded-md px-2 py-1 text-xs; }
+  .label {
+    @apply mb-1.5 block text-xs font-medium text-ink-500;
+  }
+  input[type="file"].input { @apply cursor-pointer py-1.5 pl-1.5; }
+
+  /* ---------------------------------------------------------------- surfaces */
+  .card {
+    @apply rounded-xl border border-ink-200/70 bg-white p-5 shadow-card;
+  }
+  .card-flush { @apply rounded-xl border border-ink-200/70 bg-white shadow-card; }
+  .card-interactive {
+    @apply transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-lift;
+  }
+
+  /* ---------------------------------------------------------------- tables */
+  .th {
+    @apply whitespace-nowrap px-4 py-2.5 text-left text-2xs font-semibold uppercase
+           tracking-wider text-ink-400;
+  }
+  .td { @apply px-4 py-2.5 text-sm text-ink-700; }
+  .row { @apply transition-colors hover:bg-brand-50/40; }
+
+  /* ---------------------------------------------------------------- badges */
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2 py-0.5
+           text-2xs font-medium leading-5;
+  }
+  .badge-dot::before {
+    content: "";
+    @apply h-1.5 w-1.5 shrink-0 rounded-full bg-current opacity-70;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-md border border-ink-200 bg-white
+           px-2 py-1 text-2xs font-medium text-ink-600 transition-colors
+           hover:border-ink-300 hover:bg-ink-50;
+  }
+  .chip-active {
+    @apply border-brand-600 bg-brand-600 text-white hover:border-brand-700 hover:bg-brand-700;
+  }
+
+  /* ---------------------------------------------------------------- alerts */
+  .alert { @apply flex gap-3 rounded-xl border p-4 text-sm; }
+  .alert-success { @apply alert border-emerald-200 bg-emerald-50 text-emerald-900; }
+  .alert-error   { @apply alert border-red-200 bg-red-50 text-red-900; }
+  .alert-warn    { @apply alert border-amber-200 bg-amber-50 text-amber-900; }
+  .alert-info    { @apply alert border-brand-200 bg-brand-50 text-brand-900; }
+
+  /* ---------------------------------------------------------------- overlays */
+  .overlay {
+    @apply fixed inset-0 z-50 flex items-start justify-center overflow-y-auto
+           bg-ink-950/40 p-4 backdrop-blur-sm animate-fade-in;
+  }
+  .modal {
+    @apply my-8 w-full rounded-2xl border border-white/10 bg-white p-6 shadow-pop animate-scale-in;
+  }
+
+  /* ---------------------------------------------------------------- nav */
+  .nav-link {
+    @apply relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium
+           text-ink-300 transition-colors duration-150
+           hover:bg-white/5 hover:text-white;
+  }
+  .nav-link-active {
+    @apply bg-white/10 text-white;
+  }
+  .nav-link-active::before {
+    content: "";
+    @apply absolute -left-3 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-brand-400;
+  }
+}
+
+@layer utilities {
+  /* Keeps the header visible while scrolling a wide grid */
+  .sticky-head thead th {
+    @apply sticky top-0 z-20;
+  }
+  .grid-lines th, .grid-lines td {
+    @apply border-b border-r border-ink-200/70;
+  }
+  .grid-lines tr > *:last-child { @apply border-r-0; }
+}
