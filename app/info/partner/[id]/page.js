@@ -77,7 +77,7 @@ export default async function PartnerDetail({ params }) {
       <form action={updatePartner} className="card mb-4">
         <h3 className="mb-3 text-sm font-semibold">Details</h3>
         <input type="hidden" name="id" value={p.id} />
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Field label="Name"><input name="name" defaultValue={p.name} className="input" /></Field>
           <Field label="Email"><input name="email" defaultValue={p.email || ""} className="input" /></Field>
           <Field label="Phone"><input name="phone" defaultValue={p.phone || ""} className="input" /></Field>
@@ -101,7 +101,7 @@ export default async function PartnerDetail({ params }) {
         <input type="hidden" name="partnerId" value={p.id} />
         <input type="hidden" name="type" value="BILLING" />
         {billing && <input type="hidden" name="addrId" value={billing.id} />}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="col-span-3"><Field label="Address Line 1"><input name="line1" required defaultValue={billing?.line1 || ""} className="input" /></Field></div>
           <Field label="Line 2"><input name="line2" defaultValue={billing?.line2 || ""} className="input" /></Field>
           <Field label="City"><input name="city" defaultValue={billing?.city || ""} className="input" /></Field>
@@ -112,7 +112,7 @@ export default async function PartnerDetail({ params }) {
         <div className="mt-3"><button className="btn-secondary">Save Address</button></div>
       </form>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="card">
           <h3 className="mb-2 text-sm font-semibold">Contact Persons</h3>
           {p.contacts.map(c => (
@@ -121,7 +121,7 @@ export default async function PartnerDetail({ params }) {
               <span className="text-xs text-ink-500">{[c.email, c.phone].filter(Boolean).join(" · ")}</span>
             </div>
           ))}
-          <form action={addContact} className="mt-2 grid grid-cols-2 gap-2">
+          <form action={addContact} className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
             <input type="hidden" name="partnerId" value={p.id} />
             <input name="name" required placeholder="Name" className="input" />
             <input name="role" placeholder="Role" className="input" />
@@ -138,7 +138,7 @@ export default async function PartnerDetail({ params }) {
               <b>{b.bankName}</b> · {b.accountNo} {b.swift && `· ${b.swift}`} · {b.currency}
             </div>
           ))}
-          <form action={addBank} className="mt-2 grid grid-cols-2 gap-2">
+          <form action={addBank} className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
             <input type="hidden" name="partnerId" value={p.id} />
             <input name="bankName" required placeholder="Bank name" className="input" />
             <input name="accountNo" required placeholder="Account no" className="input" />

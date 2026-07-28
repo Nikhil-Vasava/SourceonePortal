@@ -110,7 +110,7 @@ function PartnerForm({ type, label }) {
     <form action={savePartner} className="card">
       <h3 className="mb-3 text-sm font-semibold">Add {label}</h3>
       <input type="hidden" name="type" value={type} />
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Field label="Name *"><input name="name" required className="input" /></Field>
         <Field label="Email"><input name="email" type="email" className="input" /></Field>
         <Field label="Phone"><input name="phone" className="input" /></Field>
@@ -191,7 +191,7 @@ export default async function Info({ searchParams }) {
           {partnerRows(logistics)}
           <form action={savePartner} className="card">
             <h3 className="mb-3 text-sm font-semibold">Add Shipping Line / Forwarder / CHA</h3>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <Field label="Type *">
                 <select name="type" className="input"><option value="SHIPPING_LINE">Shipping Line</option><option value="FORWARDER">Forwarder</option><option value="CHA">CHA</option></select>
               </Field>
@@ -226,7 +226,7 @@ export default async function Info({ searchParams }) {
           )}
           <form action={saveProduct} className="card">
             <h3 className="mb-3 text-sm font-semibold">Add Product</h3>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <Field label="SKU *"><input name="sku" required className="input" /></Field>
               <Field label="Name *"><input name="name" required className="input" placeholder="e.g. LDPE 98/2" /></Field>
               <Field label="Category"><input name="category" className="input" /></Field>
@@ -273,7 +273,7 @@ export default async function Info({ searchParams }) {
         <form action={saveCompany} className="card max-w-3xl">
           <h3 className="mb-1 text-sm font-semibold">Company details</h3>
           <p className="mb-4 text-xs text-ink-500">These appear in the header of every generated purchase order.</p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field label="Company Name"><input name="name" defaultValue={company.name} className="input" /></Field>
             <Field label="Legal Name"><input name="legalName" defaultValue={company.legalName} className="input" /></Field>
             <div className="col-span-2"><Field label="Address"><input name="address" defaultValue={company.address} className="input" /></Field></div>

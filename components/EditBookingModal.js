@@ -19,7 +19,7 @@ export default function EditBookingModal({ booking, action }) {
             <h3 className="text-lg font-semibold tracking-tight text-ink-900">Edit booking {b.number}</h3>
             <p className="mb-5 mt-1 text-sm text-ink-500">Fill in the columns carriers don't provide, or correct anything the reader got wrong.</p>
 
-            <form action={action} className="grid grid-cols-4 gap-3">
+            <form action={action} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <input type="hidden" name="id" value={b.id} />
 
               <div><span className="label">Freight Forwarder</span><input name="freightForwarder" defaultValue={b.freightForwarder || ""} className="input" /></div>

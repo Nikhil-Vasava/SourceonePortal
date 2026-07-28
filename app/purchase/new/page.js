@@ -34,7 +34,7 @@ export default async function NewPo({ searchParams }) {
       )}
 
       <form action={createPoAction} className="card space-y-4">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <Field label="Supplier *">
             <select name="supplierId" required className="input">
               <option value="">Select supplier…</option>
@@ -47,7 +47,7 @@ export default async function NewPo({ searchParams }) {
 
         <PoLinesEditor products={products} />
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Link to Booking (optional — you can also do this from the Booking tab)">
             <select name="bookingId" className="input">
               <option value="">— none —</option>

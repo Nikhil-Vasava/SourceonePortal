@@ -14,7 +14,9 @@ export default function LinkPoCell({ booking, allPos, linkAction, unlinkAction }
   const available = allPos.filter(p => !linkedIds.has(p.id) && (!p.fromBookingId || p.fromBookingId === booking.id));
 
   return (
-    <div className="min-w-[230px] space-y-1">
+    {/* The 230px floor keeps the desktop column from collapsing, but it would
+        overflow a 390px phone once padding is counted — so only apply it from sm. */}
+    <div className="w-full space-y-1 sm:min-w-[230px]">
       {linked.map(p => (
         <div key={p.id} className="flex items-center gap-1.5 rounded-md bg-brand-50/70 px-2 py-1">
           <IconDoc size={13} className="shrink-0 text-brand-500" />

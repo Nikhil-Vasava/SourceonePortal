@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { fdate, fmt } from "@/lib/util";
 import { PageHeader, Empty, Badge } from "@/components/ui";
 import EditBookingModal from "@/components/EditBookingModal";
+import BookingCard from "@/components/BookingCard";
 import LinkPoCell from "@/components/LinkPoCell";
 import { updateBookingAction } from "@/lib/actions-booking";
 import { linkPoAction, unlinkPoAction } from "@/lib/actions-po";
@@ -87,7 +88,29 @@ export default async function Bookings({ searchParams }) {
           action={<Link href="/bookings/import" className="btn"><IconUpload size={16} /> Import booking</Link>}
         />
       ) : (
-        <div className="card-flush overflow-hidden">
+        <>
+        {/* Phone: one card per booking. The 16-column grid is unusable at this width. */}
+        <div className="space-y-3 lg:hidden">
+          {bookings.map(b => (
+            <BookingCard key={b.id} booking={plain(b)}>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <LinkPoCell
+                  booking={plain({
+                    id: b.id,
+                    purchaseOrders: b.purchaseOrders.map(p => ({ id: p.id, number: p.number, partnerName: p.partner.name })),
+                  })}
+                  allPos={allPos}
+                  linkAction={linkPoAction}
+                  unlinkAction={unlinkPoAction}
+                />
+                <EditBookingModal booking={plain(b)} action={updateBookingAction} />
+              </div>
+            </BookingCard>
+          ))}
+        </div>
+
+        {/* Desktop: the full tracking sheet */}
+        <div className="card-flush hidden overflow-hidden lg:block">
           <div className="max-h-[calc(100vh-15rem)] overflow-auto">
             <table className="min-w-full border-separate border-spacing-0 text-xs">
               <thead>
@@ -155,11 +178,16 @@ export default async function Bookings({ searchParams }) {
             </table>
           </div>
         </div>
+        </>
       )}
 
       {bookings.length > 0 && (
         <p className="mt-3 text-2xs text-ink-400">
-          Scroll sideways for all 16 columns — the booking number stays pinned. Create purchase orders on the{" "}
+          <span className="hidden lg:inline">
+            Scroll sideways for all 16 columns — the booking number stays pinned.{" "}
+          </span>
+          <span className="lg:hidden">Tap a booking number to open it.{" "}</span>
+          Create purchase orders on the{" "}
           <Link href="/purchase" className="text-brand-600 hover:underline">Purchase</Link> tab, then attach one here.
         </p>
       )}

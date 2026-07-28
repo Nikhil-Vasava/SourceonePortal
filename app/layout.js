@@ -1,10 +1,19 @@
 import "./globals.css";
 import { getUser } from "@/lib/auth";
-import Sidebar from "@/components/Sidebar";
+import AppShell from "@/components/AppShell";
 
 export const metadata = {
   title: "SourceOne ERP",
   description: "Import / Export Trade Operations",
+};
+
+// width=device-width stops mobile browsers rendering at a fake 980px and
+// zooming out. maximumScale is left alone deliberately — blocking pinch-zoom
+// on a data-heavy app makes it unusable for anyone who needs to zoom in.
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#0f172a",
 };
 
 export default function RootLayout({ children }) {
@@ -13,12 +22,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className="antialiased">
         {user ? (
-          <div className="flex h-screen overflow-hidden">
-            <Sidebar user={user} />
-            <main className="flex-1 overflow-y-auto">
-              <div className="mx-auto max-w-[1600px] px-8 py-8">{children}</div>
-            </main>
-          </div>
+          <AppShell user={user}>{children}</AppShell>
         ) : (
           <main>{children}</main>
         )}

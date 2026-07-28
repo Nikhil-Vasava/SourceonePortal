@@ -67,7 +67,7 @@ export default async function Buyers() {
                     {b.pol || "?"} → {b.pod || "?"} · ETA {fdate(b.eta)} · {b.lines.length} line{b.lines.length === 1 ? "" : "s"}
                   </span>
                 </div>
-                <form action={allocateBooking} className="flex items-center gap-2">
+                <form action={allocateBooking} className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                   <input type="hidden" name="bookingId" value={b.id} />
                   <span className="text-xs text-ink-500">Shipment buyer:</span>
                   <select name="buyerId" defaultValue={b.buyerId || ""} className="input w-52">

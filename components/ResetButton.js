@@ -44,7 +44,7 @@ export default function ResetButton({ action, label, confirmWord, severe = false
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={severe ? "btn btn-danger shrink-0" : "btn btn-secondary shrink-0"}
+        className={`${severe ? "btn btn-danger" : "btn btn-secondary"} w-full shrink-0 justify-center sm:w-auto`}
       >
         {severe ? "Delete" : "Clear"}
       </button>

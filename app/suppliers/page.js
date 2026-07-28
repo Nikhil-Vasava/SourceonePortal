@@ -174,19 +174,19 @@ export default async function Suppliers({ searchParams }) {
                         {filled}/{b.lines.length} filled
                       </span>
                       {slipFile && (
-                        <span className="max-w-[16rem] truncate text-2xs text-ink-400" title={slipFile}>{slipFile}</span>
+                        <span className="max-w-full truncate text-2xs text-ink-400 sm:max-w-[16rem]" title={slipFile}>{slipFile}</span>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
                       <form action={reassignBooking} className="flex items-center gap-1.5">
                         <input type="hidden" name="bookingId" value={b.id} />
-                        <span className="text-2xs text-ink-400">Supplier</span>
-                        <select name="supplierId" defaultValue={commonSupplier} className="input input-sm w-44">
+                        <span className="shrink-0 text-2xs text-ink-400">Supplier</span>
+                        <select name="supplierId" defaultValue={commonSupplier} className="input input-sm w-full min-w-0 sm:w-44">
                           <option value="">— not allocated —</option>
                           {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                         </select>
-                        <button className="btn-secondary btn-sm">Apply to all</button>
+                        <button className="btn-secondary btn-sm shrink-0">Apply to all</button>
                       </form>
 
                       <PackingSlipUpload

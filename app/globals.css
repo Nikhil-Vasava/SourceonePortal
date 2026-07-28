@@ -11,6 +11,14 @@
   body {
     @apply bg-ink-50 text-ink-800;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    /* Stops iOS Safari inflating type in landscape */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* iOS zooms the viewport when focusing any control under 16px. Bumping the
+     font size on small screens keeps forms usable without disabling zoom. */
+  @media (max-width: 767px) {
+    input, select, textarea { font-size: 16px; }
   }
   /* Figures line up in columns — essential for a data-heavy app */
   table, .tnum { font-variant-numeric: tabular-nums; }
@@ -98,6 +106,20 @@
   .td { @apply px-4 py-2.5 text-sm text-ink-700; }
   .row { @apply transition-colors hover:bg-brand-50/40; }
 
+  /* Wraps any table that must stay a table on a phone. Scrolls sideways
+     within its own box instead of forcing the whole page wide. */
+  .table-scroll {
+    @apply -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ------------------------------------------------------- mobile record card */
+  /* Used where a table row becomes a stacked card below `sm`. */
+  .rec-card { @apply rounded-xl border border-ink-200/70 bg-white p-4 shadow-card; }
+  .rec-row  { @apply flex items-baseline justify-between gap-3 py-1; }
+  .rec-key  { @apply shrink-0 text-2xs font-medium uppercase tracking-wider text-ink-400; }
+  .rec-val  { @apply min-w-0 break-words text-right text-sm text-ink-800; }
+
   /* ---------------------------------------------------------------- badges */
   .badge {
     @apply inline-flex items-center gap-1.5 rounded-full px-2 py-0.5
@@ -128,8 +150,10 @@
     @apply fixed inset-0 z-50 flex items-start justify-center overflow-y-auto
            bg-ink-950/40 p-4 backdrop-blur-sm animate-fade-in;
   }
+  /* Full-height sheet on a phone, centred dialog from `sm` up. */
   .modal {
-    @apply my-8 w-full rounded-2xl border border-white/10 bg-white p-6 shadow-pop animate-scale-in;
+    @apply w-full rounded-2xl border border-white/10 bg-white p-5 shadow-pop animate-scale-in
+           my-4 sm:my-8 sm:p-6;
   }
 
   /* ---------------------------------------------------------------- nav */

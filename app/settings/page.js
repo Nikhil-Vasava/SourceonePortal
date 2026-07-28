@@ -9,11 +9,26 @@ import {
   deleteAllBookingsAction,
 } from "@/lib/actions-reset";
 import ResetButton from "@/components/ResetButton";
+import SettingsPinGate, { LockOnLeave } from "@/components/SettingsPinGate";
+import LockButton from "@/components/LockButton";
+import { settingsUnlocked, hasSettingsPin, UNLOCK_MINUTES } from "@/lib/settings-lock";
 
 export const dynamic = "force-dynamic";
 
 export default async function Settings({ searchParams }) {
   requireRole("ADMIN");
+
+  // Locked view renders inside the normal layout, so the sidebar stays visible
+  // and this looks like one locked section rather than a takeover.
+  if (!settingsUnlocked()) {
+    return (
+      <div>
+        <PageHeader title="Settings" subtitle="Admin only · locked" />
+        <SettingsPinGate configured={hasSettingsPin()} minutes={UNLOCK_MINUTES} />
+      </div>
+    );
+  }
+
   const c = await getResetCounts();
 
   const resets = [
@@ -57,7 +72,12 @@ export default async function Settings({ searchParams }) {
 
   return (
     <div>
-      <PageHeader title="Settings" subtitle="Admin only" />
+      <LockOnLeave />
+      <PageHeader
+        title="Settings"
+        subtitle={`Admin only · unlocked for ${UNLOCK_MINUTES} minutes`}
+        action={<LockButton />}
+      />
 
       {searchParams?.done && (
         <div className="alert-success mb-5">
@@ -91,7 +111,7 @@ export default async function Settings({ searchParams }) {
         <div className="space-y-px overflow-hidden rounded-lg">
           {resets.map(r => (
             <div key={r.id} className="bg-white p-5">
-              <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
                 <div className="max-w-xl">
                   <h3 className="flex items-center gap-2 text-sm font-semibold text-ink-900">
                     {r.severe && <IconTrash size={15} className="text-red-600" />}

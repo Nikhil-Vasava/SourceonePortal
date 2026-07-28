@@ -43,7 +43,7 @@ export default async function NewBooking() {
   return (
     <div className="max-w-4xl">
       <PageHeader title="Add Booking" subtitle="Manual entry — use Import to read a booking PDF instead" />
-      <form action={createBooking} className="card grid grid-cols-3 gap-4">
+      <form action={createBooking} className="card grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Field label="Shipping Line"><select name="shippingLineId" className="input">{opts(lines)}</select></Field>
         <Field label="Freight Forwarder"><select name="forwarderId" className="input">{opts(forwarders)}</select></Field>
         <Field label="CHA"><select name="chaId" className="input">{opts(chas)}</select></Field>
@@ -59,7 +59,7 @@ export default async function NewBooking() {
 
         <div className="col-span-3 mt-2 border-t pt-4">
           <h3 className="mb-3 text-sm font-semibold">Container lines</h3>
-          <div className="grid grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             <Field label="How many lines?"><input name="lineCount" type="number" min="1" defaultValue="1" className="input" /></Field>
             <Field label="Container Type">
               <select name="containerType" className="input"><option value="">—</option>{["20GP","40GP","40HC","45HC","20RF","40RF"].map(t => <option key={t}>{t}</option>)}</select>

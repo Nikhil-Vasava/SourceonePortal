@@ -100,3 +100,7 @@ export const IconTrash = (p) => (
   <Svg {...p}><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" /><path d="M10 11v6M14 11v6" /></Svg>
 );
+
+export const IconMenu = (p) => (
+  <Svg {...p}><path d="M3 6h18M3 12h18M3 18h18" /></Svg>
+);
