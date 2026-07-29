@@ -263,7 +263,18 @@ const BUYERS = [
 /** Expands a row above into the shape prisma.partner.create expects. */
 function toPartner(row, type, defaults = {}) {
   const country = row.country || defaults.country || null;
-  const hasAddress = Boolean(row.line1 || row.city || row.zip);
+
+  // Address.line1 is required in the schema, so a row with only a town gets no
+  // Address record at all. Writing one with line1 null fails, and the error
+  // Prisma reports for it ("Argument `partner` is missing") points nowhere near
+  // the real cause.
+  const hasAddress = Boolean(row.line1);
+
+  // Nothing is dropped when there's no address: the town falls back into region
+  // alongside the state, which is the only other place it would be visible.
+  const region = row.region
+    || (hasAddress ? row.state : [row.city, row.state].filter(Boolean).join(", "))
+    || null;
 
   return {
     name: row.name,
@@ -271,7 +282,7 @@ function toPartner(row, type, defaults = {}) {
     email: row.email || null,
     phone: row.phone || null,
     country,
-    region: row.region || row.state || null,
+    region,
     currency: row.currency || defaults.currency || "USD",
     paymentTerms: row.paymentTerms || defaults.paymentTerms || null,
     incoterm: row.incoterm || defaults.incoterm || null,
@@ -281,7 +292,7 @@ function toPartner(row, type, defaults = {}) {
       addresses: {
         create: [{
           type: "BILLING",
-          line1: row.line1 || null,
+          line1: row.line1,
           city: row.city || null,
           state: row.state || null,
           country,

@@ -12,7 +12,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   IconDashboard, IconPurchase, IconShip, IconFactory,
-  IconHandshake, IconBook, IconUsers, IconLogout, IconSettings, IconX,
+  IconHandshake, IconBook, IconUsers, IconLogout, IconSettings, IconX, IconClock,
 } from "@/components/icons";
 
 const NAV = [
@@ -20,6 +20,7 @@ const NAV = [
     { href: "/", label: "Dashboard", Icon: IconDashboard },
     { href: "/purchase", label: "Purchase", Icon: IconPurchase },
     { href: "/bookings", label: "Booking", Icon: IconShip },
+    { href: "/tracking", label: "Tracking", Icon: IconClock },
   ]},
   { section: "Fulfilment", items: [
     { href: "/suppliers", label: "Supplier", Icon: IconFactory },

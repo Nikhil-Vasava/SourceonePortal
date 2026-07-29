@@ -12,6 +12,8 @@ import ResetButton from "@/components/ResetButton";
 import SettingsPinGate, { LockOnLeave } from "@/components/SettingsPinGate";
 import LockButton from "@/components/LockButton";
 import { settingsUnlocked, hasSettingsPin, UNLOCK_MINUTES } from "@/lib/settings-lock";
+import { saveSlaAction } from "@/lib/actions-master";
+import { getCompany } from "@/lib/company";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +31,7 @@ export default async function Settings({ searchParams }) {
     );
   }
 
-  const c = await getResetCounts();
+  const [c, company] = await Promise.all([getResetCounts(), getCompany()]);
 
   const resets = [
     {
@@ -133,6 +135,51 @@ export default async function Settings({ searchParams }) {
           ))}
         </div>
       </div>
+
+      <SectionTitle>Delivery windows</SectionTitle>
+      <p className="mb-4 max-w-2xl text-sm text-ink-500">
+        The contractual days behind the{" "}
+        <Link href="/tracking" className="text-brand-600 hover:underline">Tracking</Link> page.
+        Shipments turn amber on the warning day and red once a window is passed.
+      </p>
+
+      <form action={saveSlaAction} className="card mb-8 max-w-2xl">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div>
+            <label className="label" htmlFor="carrierSlaDays">Carrier delivers within</label>
+            <div className="flex items-center gap-2">
+              <input id="carrierSlaDays" name="carrierSlaDays" type="number" min="1" max="365"
+                     defaultValue={company.carrierSlaDays} required className="input" />
+              <span className="shrink-0 text-xs text-ink-500">days</span>
+            </div>
+            <p className="mt-1 text-2xs text-ink-400">Counted from the sailing date.</p>
+          </div>
+
+          <div>
+            <label className="label" htmlFor="buyerSlaDays">Buyer receives within</label>
+            <div className="flex items-center gap-2">
+              <input id="buyerSlaDays" name="buyerSlaDays" type="number" min="1" max="365"
+                     defaultValue={company.buyerSlaDays} required className="input" />
+              <span className="shrink-0 text-xs text-ink-500">days</span>
+            </div>
+            <p className="mt-1 text-2xs text-ink-400">Counted from allocation to the buyer.</p>
+          </div>
+
+          <div>
+            <label className="label" htmlFor="slaWarnDays">Start chasing on day</label>
+            <div className="flex items-center gap-2">
+              <input id="slaWarnDays" name="slaWarnDays" type="number" min="1" max="365"
+                     defaultValue={company.slaWarnDays} required className="input" />
+              <span className="shrink-0 text-xs text-ink-500">days</span>
+            </div>
+            <p className="mt-1 text-2xs text-ink-400">Must be below the shorter window.</p>
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <button className="btn">Save delivery windows</button>
+        </div>
+      </form>
 
       <SectionTitle>Rebuild the demo data</SectionTitle>
       <p className="max-w-2xl text-sm text-ink-500">

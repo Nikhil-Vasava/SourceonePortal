@@ -3,7 +3,10 @@ import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { fdate, fmt } from "@/lib/util";
 import { PageHeader, Badge, Stat, SectionTitle } from "@/components/ui";
-import { IconUpload, IconArrowRight } from "@/components/icons";
+import { IconUpload, IconArrowRight, IconAlert, IconClock } from "@/components/icons";
+import { getCompany } from "@/lib/company";
+import { bookingClocks, severity, needsFollowUp } from "@/lib/sla";
+import { SlaPill } from "@/components/SlaBadge";
 
 export const dynamic = "force-dynamic";
 
@@ -24,10 +27,11 @@ function Meter({ done, total }) {
 
 export default async function Dashboard() {
   requireUser();
-  const [bookings, lines, pos] = await Promise.all([
+  const [bookings, lines, pos, company] = await Promise.all([
     prisma.booking.findMany({ include: { lines: true }, orderBy: { id: "desc" } }),
     prisma.bookingLine.findMany(),
     prisma.purchaseOrder.findMany({ select: { id: true, fromBookingId: true } }),
+    getCompany(),
   ]);
 
   const active = bookings.filter(b => ["DRAFT", "CONFIRMED", "SHIPPED"].includes(b.status)).length;
@@ -52,6 +56,19 @@ export default async function Dashboard() {
 
   const recent = bookings.slice(0, 8);
 
+  // Shipments past the warning threshold on either clock, worst first. Delivered
+  // ones drop out — there's nobody left to chase.
+  const now = new Date();
+  const followUp = bookings
+    .filter(b => !b.deliveredAt)
+    .map(b => ({ b, clocks: bookingClocks(b, company, now) }))
+    .filter(r => needsFollowUp(r.clocks))
+    .sort((a, z) => severity(z.clocks.worst) - severity(a.clocks.worst));
+
+  const overdueCount = followUp.filter(
+    r => r.clocks.carrier.band === "breached" || r.clocks.buyer.band === "breached"
+  ).length;
+
   return (
     <div>
       <PageHeader
@@ -63,6 +80,54 @@ export default async function Dashboard() {
           </Link>
         }
       />
+
+      {followUp.length > 0 && (
+        <div className="mb-8 card-flush overflow-hidden border-amber-200">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 bg-amber-50 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <IconAlert size={16} className="text-amber-600" />
+              <span className="text-sm font-semibold text-amber-900">
+                {followUp.length} shipment{followUp.length === 1 ? "" : "s"} need following up
+              </span>
+              {overdueCount > 0 && (
+                <span className="badge bg-red-100 text-red-700">{overdueCount} overdue</span>
+              )}
+            </div>
+            <Link href="/tracking" className="inline-flex items-center gap-1 text-xs font-medium text-amber-800 hover:underline">
+              Open tracking <IconArrowRight size={13} />
+            </Link>
+          </div>
+
+          <div className="divide-y divide-ink-100">
+            {followUp.slice(0, 5).map(({ b, clocks }) => (
+              <div key={b.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5">
+                <div className="min-w-0">
+                  <Link href={`/bookings/${b.id}`} className="text-sm font-medium text-brand-700 hover:underline">
+                    {b.number}
+                  </Link>
+                  <span className="ml-2 text-2xs text-ink-500">
+                    {[b.pol, b.pod].filter(Boolean).join(" → ")}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="flex items-center gap-1 text-2xs text-ink-400">
+                    <IconClock size={11} /> carrier
+                  </span>
+                  <SlaPill clock={clocks.carrier} />
+                  <span className="text-2xs text-ink-400">buyer</span>
+                  <SlaPill clock={clocks.buyer} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {followUp.length > 5 && (
+            <div className="border-t border-ink-100 px-4 py-2 text-2xs text-ink-500">
+              and {followUp.length - 5} more on the tracking page
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {kpis.map(k => <Stat key={k.label} {...k} />)}

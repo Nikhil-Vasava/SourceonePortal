@@ -243,6 +243,15 @@ model Booking {
   containerType    String?   // e.g. 40 DRY HC
   commodity        String?
   serviceContract  String?
+
+  // ===== Delivery SLA =====
+  // The carrier clock runs from when the vessel actually sailed. `etd` is the
+  // scheduled date and moves around, so the contractual 45 days is measured
+  // from actualDeparture when it's known and falls back to etd until then.
+  actualDeparture DateTime?
+  // Stops the carrier clock. Set by "Mark delivered" on the Tracking page.
+  deliveredAt     DateTime?
+  deliveryNote    String?
 }
 
 // ===== Booking Lines (one row per container / lot) =====
@@ -310,6 +319,13 @@ model CompanySetting {
   poPrefix       String @default("NZP")
   minimumWeight  String @default("20 MT.")
   defaultComments String @default("Currency mentioned is in USD")
+
+  // ===== Delivery SLA =====
+  // Contractual windows, in days. Editable in Settings so a renegotiated
+  // contract doesn't need a code change.
+  carrierSlaDays Int @default(45)   // carrier must deliver within this many days of departure
+  buyerSlaDays   Int @default(45)   // buyer must receive within this many days of the order
+  slaWarnDays    Int @default(40)   // start chasing once a clock passes this
 }
 
 // ===== Container =====

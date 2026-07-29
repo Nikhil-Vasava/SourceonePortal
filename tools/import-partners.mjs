@@ -60,20 +60,24 @@ async function upsert(record) {
     return existing ? "updated" : "created";
   }
 
-  let partner;
+  // One nested write per partner rather than a sequence of separate creates: if
+  // anything in it is rejected, the whole partner rolls back instead of being
+  // left half-written with no address or contacts.
   if (existing) {
-    partner = await prisma.partner.update({ where: { id: existing.id }, data: scalars });
-    // Replace rather than merge, so a corrected sheet doesn't leave stale rows.
-    await prisma.address.deleteMany({ where: { partnerId: partner.id } });
-    await prisma.contactPerson.deleteMany({ where: { partnerId: partner.id } });
-  } else {
-    partner = await prisma.partner.create({ data: scalars });
+    await prisma.partner.update({
+      where: { id: existing.id },
+      data: {
+        ...scalars,
+        // Replace rather than merge, so a corrected sheet doesn't leave stale rows.
+        addresses: { deleteMany: {}, ...(address && { create: [address] }) },
+        contacts: { deleteMany: {}, ...(contacts.length && { create: contacts }) },
+      },
+    });
+    return "updated";
   }
 
-  if (address) await prisma.address.create({ data: { ...address, partnerId: partner.id } });
-  for (const c of contacts) await prisma.contactPerson.create({ data: { ...c, partnerId: partner.id } });
-
-  return existing ? "updated" : "created";
+  await prisma.partner.create({ data: record });
+  return "created";
 }
 
 async function main() {
