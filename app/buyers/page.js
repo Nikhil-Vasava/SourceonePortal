@@ -38,7 +38,7 @@ export default async function Buyers() {
       include: { buyer: true, lines: { orderBy: { lineNo: "asc" }, include: { buyer: true, product: true, supplier: true } } },
       orderBy: { id: "desc" },
     }),
-    prisma.partner.findMany({ where: { type: { in: ["CUSTOMER", "BUYER"] } }, orderBy: { name: "asc" } }),
+    prisma.partner.findMany({ where: { type: { in: ["CUSTOMER", "BUYER"] }, active: true }, orderBy: { name: "asc" } }),
   ]);
 
   const allLines = bookings.flatMap(b => b.lines);

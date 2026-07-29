@@ -33,9 +33,9 @@ async function createBooking(formData) {
 export default async function NewBooking() {
   requireUser();
   const [lines, forwarders, chas, ports] = await Promise.all([
-    prisma.partner.findMany({ where: { type: "SHIPPING_LINE" }, orderBy: { name: "asc" } }),
-    prisma.partner.findMany({ where: { type: "FORWARDER" }, orderBy: { name: "asc" } }),
-    prisma.partner.findMany({ where: { type: "CHA" }, orderBy: { name: "asc" } }),
+    prisma.partner.findMany({ where: { type: "SHIPPING_LINE", active: true }, orderBy: { name: "asc" } }),
+    prisma.partner.findMany({ where: { type: "FORWARDER", active: true }, orderBy: { name: "asc" } }),
+    prisma.partner.findMany({ where: { type: "CHA", active: true }, orderBy: { name: "asc" } }),
     prisma.port.findMany({ orderBy: { name: "asc" } }),
   ]);
   const opts = (arr) => [<option key="" value="">—</option>, ...arr.map(x => <option key={x.id} value={x.id}>{x.name}</option>)];

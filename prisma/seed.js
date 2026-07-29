@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const { prisma } = require("../lib/db");
+const { supplierRecords, buyerRecords } = require("./master-data");
 
 async function main() {
   if (await prisma.user.count() > 0) { console.log("Already seeded, skipping."); return; }
@@ -30,34 +31,15 @@ async function main() {
     { code: "VNSGN", name: "Ho Chi Minh", country: "Vietnam" },
   ]});
 
-  // --- Suppliers ---
-  const wm = await prisma.partner.create({ data: {
-    name: "WM - Auckland", type: "VENDOR", country: "New Zealand", region: "APAC",
-    currency: "USD", paymentTerms: "NET30", incoterm: "FAS",
-    email: "amorgan@wm.nz", phone: "+64 (027) 801 4091", taxId: "108-442-901",
-    addresses: { create: [{ type: "BILLING", line1: "318 East Tamaki Road", city: "East Tāmaki", state: "Auckland", country: "New Zealand", zip: "2013" }] },
-    contacts: { create: [{ name: "A. Morgan", role: "Sales Manager", email: "amorgan@wm.nz", phone: "+64 (027) 801 4091" }] },
-  }});
-  const green = await prisma.partner.create({ data: {
-    name: "Greencycle Recyclers Ltd", type: "VENDOR", country: "New Zealand", region: "APAC",
-    currency: "NZD", paymentTerms: "ADVANCE", incoterm: "FOB",
-    email: "sales@greencycle.co.nz", phone: "+64 (09) 555 2210",
-    addresses: { create: [{ type: "BILLING", line1: "12 Rothwell Avenue", city: "Albany", state: "Auckland", country: "New Zealand", zip: "0632" }] },
-    contacts: { create: [{ name: "Sarah Lin", role: "Operations", email: "sarah@greencycle.co.nz" }] },
-  }});
+  // --- Suppliers and buyers (real master data, see prisma/master-data.js) ---
+  // Created one at a time rather than with createMany so the nested addresses
+  // and contacts come along with each partner.
+  for (const data of supplierRecords()) await prisma.partner.create({ data });
+  for (const data of buyerRecords()) await prisma.partner.create({ data });
 
-  // --- Buyers ---
-  await prisma.partner.create({ data: {
-    name: "Dubai Trading House LLC", type: "CUSTOMER", country: "UAE", region: "MEA",
-    currency: "USD", paymentTerms: "LC", incoterm: "CIF", email: "purchase@dubaitrading.ae",
-    addresses: { create: [{ type: "BILLING", line1: "Warehouse 12, Jebel Ali Free Zone", city: "Dubai", country: "UAE" }] },
-    contacts: { create: [{ name: "Ahmed Al Rashid", role: "Procurement Head", email: "ahmed@dubaitrading.ae" }] },
-  }});
-  await prisma.partner.create({ data: {
-    name: "Shanghai Polymer Imports Co.", type: "CUSTOMER", country: "China", region: "APAC",
-    currency: "USD", paymentTerms: "NET30", incoterm: "CFR", email: "buy@shpolymer.cn",
-    addresses: { create: [{ type: "BILLING", line1: "888 Pudong Avenue", city: "Shanghai", country: "China" }] },
-  }});
+  // Two suppliers the demo booking and purchase order below hang off.
+  const wm = await prisma.partner.findFirst({ where: { name: "WM - Auckland" } });
+  const green = await prisma.partner.findFirst({ where: { name: "Abilities Group" } });
 
   // --- Logistics partners ---
   const maersk = await prisma.partner.create({ data: { name: "Maersk Line", type: "SHIPPING_LINE", country: "Denmark", currency: "USD" } });

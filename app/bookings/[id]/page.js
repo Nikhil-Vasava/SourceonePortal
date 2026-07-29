@@ -48,8 +48,8 @@ export default async function BookingDetail({ params, searchParams }) {
   if (!b) notFound();
 
   const [suppliers, products] = await Promise.all([
-    prisma.partner.findMany({ where: { type: { in: ["VENDOR", "BUYER"] } }, orderBy: { name: "asc" } }),
-    prisma.product.findMany({ orderBy: { name: "asc" } }),
+    prisma.partner.findMany({ where: { type: { in: ["VENDOR", "BUYER"] }, active: true }, orderBy: { name: "asc" } }),
+    prisma.product.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
   ]);
 
   return (

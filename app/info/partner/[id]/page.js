@@ -4,8 +4,30 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { PageHeader, Field, Info } from "@/components/ui";
+import RecordModal from "@/components/RecordModal";
+import { DeleteRecord } from "@/components/RowActions";
+import {
+  saveContactAction, deleteContactAction,
+  saveBankAction, deleteBankAction,
+} from "@/lib/actions-master";
 
 export const dynamic = "force-dynamic";
+
+// Field specs shared by the add and edit modals for each panel below.
+const CONTACT_FIELDS = [
+  { name: "name", label: "Name", required: true },
+  { name: "role", label: "Role", placeholder: "e.g. Operations" },
+  { name: "email", label: "Email", type: "email" },
+  { name: "phone", label: "Phone" },
+];
+
+const BANK_FIELDS = [
+  { name: "bankName", label: "Bank name", required: true },
+  { name: "accountNo", label: "Account no.", required: true },
+  { name: "swift", label: "SWIFT / BIC" },
+  { name: "currency", label: "Currency", type: "select",
+    options: ["USD", "NZD", "EUR", "INR", "AED", "GBP", "CNY"], defaultValue: "USD" },
+];
 
 async function updatePartner(formData) {
   "use server";
@@ -39,26 +61,6 @@ async function saveAddress(formData) {
   revalidatePath(`/info/partner/${partnerId}`);
 }
 
-async function addContact(formData) {
-  "use server";
-  const partnerId = Number(formData.get("partnerId"));
-  await prisma.contactPerson.create({ data: {
-    partnerId, name: formData.get("name"), role: formData.get("role") || null,
-    email: formData.get("email") || null, phone: formData.get("phone") || null,
-  }});
-  revalidatePath(`/info/partner/${partnerId}`);
-}
-
-async function addBank(formData) {
-  "use server";
-  const partnerId = Number(formData.get("partnerId"));
-  await prisma.bankAccount.create({ data: {
-    partnerId, bankName: formData.get("bankName"), accountNo: formData.get("accountNo"),
-    swift: formData.get("swift") || null, currency: formData.get("currency") || "USD",
-  }});
-  revalidatePath(`/info/partner/${partnerId}`);
-}
-
 export default async function PartnerDetail({ params }) {
   requireUser();
   const p = await prisma.partner.findUnique({
@@ -66,6 +68,7 @@ export default async function PartnerDetail({ params }) {
     include: { addresses: true, banks: true, contacts: true },
   });
   if (!p) notFound();
+  const plain = (o) => JSON.parse(JSON.stringify(o));
   const billing = p.addresses.find(a => a.type === "BILLING");
   const backTab = p.type === "VENDOR" ? "suppliers" : ["CUSTOMER", "BUYER"].includes(p.type) ? "buyers" : "logistics";
 
@@ -114,38 +117,85 @@ export default async function PartnerDetail({ params }) {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="card">
-          <h3 className="mb-2 text-sm font-semibold">Contact Persons</h3>
-          {p.contacts.map(c => (
-            <div key={c.id} className="mb-1 rounded bg-ink-50 p-2 text-sm">
-              <b>{c.name}</b> {c.role && <span className="text-ink-500">({c.role})</span>}<br />
-              <span className="text-xs text-ink-500">{[c.email, c.phone].filter(Boolean).join(" · ")}</span>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h3 className="text-sm font-semibold">Contact persons</h3>
+            <RecordModal
+              fields={CONTACT_FIELDS}
+              fixed={{ partnerId: p.id }}
+              action={saveContactAction}
+              title="Add contact"
+              triggerLabel="Add"
+            />
+          </div>
+
+          {p.contacts.length === 0 ? (
+            <p className="text-xs text-ink-400">No contacts yet.</p>
+          ) : (
+            <div className="space-y-1">
+              {p.contacts.map(c => (
+                <div key={c.id} className="flex items-start justify-between gap-2 rounded-lg bg-ink-50 p-2.5">
+                  <div className="min-w-0 text-sm">
+                    <b>{c.name}</b>{c.role && <span className="text-ink-500"> ({c.role})</span>}
+                    <div className="truncate text-xs text-ink-500">
+                      {[c.email, c.phone].filter(Boolean).join(" · ") || "—"}
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <RecordModal
+                      fields={CONTACT_FIELDS}
+                      record={plain(c)}
+                      fixed={{ partnerId: p.id }}
+                      action={saveContactAction}
+                      title="Contact"
+                      trigger="icon"
+                    />
+                    <DeleteRecord id={c.id} name={c.name} action={deleteContactAction} label="contact" />
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-          <form action={addContact} className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <input type="hidden" name="partnerId" value={p.id} />
-            <input name="name" required placeholder="Name" className="input" />
-            <input name="role" placeholder="Role" className="input" />
-            <input name="email" placeholder="Email" className="input" />
-            <input name="phone" placeholder="Phone" className="input" />
-            <div className="col-span-2"><button className="btn-secondary">+ Add Contact</button></div>
-          </form>
+          )}
         </div>
 
         <div className="card">
-          <h3 className="mb-2 text-sm font-semibold">Bank Accounts</h3>
-          {p.banks.map(b => (
-            <div key={b.id} className="mb-1 rounded bg-ink-50 p-2 text-sm">
-              <b>{b.bankName}</b> · {b.accountNo} {b.swift && `· ${b.swift}`} · {b.currency}
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h3 className="text-sm font-semibold">Bank accounts</h3>
+            <RecordModal
+              fields={BANK_FIELDS}
+              fixed={{ partnerId: p.id }}
+              action={saveBankAction}
+              title="Add bank account"
+              triggerLabel="Add"
+            />
+          </div>
+
+          {p.banks.length === 0 ? (
+            <p className="text-xs text-ink-400">No bank accounts yet.</p>
+          ) : (
+            <div className="space-y-1">
+              {p.banks.map(b => (
+                <div key={b.id} className="flex items-start justify-between gap-2 rounded-lg bg-ink-50 p-2.5">
+                  <div className="min-w-0 text-sm">
+                    <b>{b.bankName}</b>
+                    <div className="truncate text-xs text-ink-500">
+                      {[b.accountNo, b.swift, b.currency].filter(Boolean).join(" · ")}
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <RecordModal
+                      fields={BANK_FIELDS}
+                      record={plain(b)}
+                      fixed={{ partnerId: p.id }}
+                      action={saveBankAction}
+                      title="Bank account"
+                      trigger="icon"
+                    />
+                    <DeleteRecord id={b.id} name={b.bankName} action={deleteBankAction} label="bank account" />
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-          <form action={addBank} className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <input type="hidden" name="partnerId" value={p.id} />
-            <input name="bankName" required placeholder="Bank name" className="input" />
-            <input name="accountNo" required placeholder="Account no" className="input" />
-            <input name="swift" placeholder="SWIFT" className="input" />
-            <select name="currency" className="input">{["USD","NZD","EUR","INR","AED"].map(c => <option key={c}>{c}</option>)}</select>
-            <div className="col-span-2"><button className="btn-secondary">+ Add Bank</button></div>
-          </form>
+          )}
         </div>
       </div>
     </div>

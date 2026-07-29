@@ -11,8 +11,8 @@ export const dynamic = "force-dynamic";
 export default async function NewPo({ searchParams }) {
   requireUser();
   const [suppliers, products, bookings, company] = await Promise.all([
-    prisma.partner.findMany({ where: { type: { in: ["VENDOR", "BUYER"] } }, orderBy: { name: "asc" } }),
-    prisma.product.findMany({ orderBy: { name: "asc" } }),
+    prisma.partner.findMany({ where: { type: { in: ["VENDOR", "BUYER"] }, active: true }, orderBy: { name: "asc" } }),
+    prisma.product.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
     prisma.booking.findMany({ orderBy: { id: "desc" } }),
     getCompany(),
   ]);

@@ -92,7 +92,7 @@ export default async function Suppliers({ searchParams }) {
       },
       orderBy: { id: "desc" },
     }),
-    prisma.partner.findMany({ where: { type: { in: ["VENDOR", "BUYER"] } }, orderBy: { name: "asc" } }),
+    prisma.partner.findMany({ where: { type: { in: ["VENDOR", "BUYER"] }, active: true }, orderBy: { name: "asc" } }),
   ]);
 
   const withLines = bookings.filter(b => b.lines.length);
