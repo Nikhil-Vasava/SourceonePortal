@@ -181,7 +181,7 @@ export default async function Info({ searchParams }) {
         <div className="hidden lg:block">
           <Table headers={["Name", "Type", "Email", "Phone", "Country", "Currency", "Terms", "Incoterm", "Status", ""]}>
             {list.map(p => (
-              <tr key={p.id} className={`row ${p.active ? "" : "bg-ink-50/50 text-ink-400"}`}>
+              <tr key={p.id} className={`row ${p.active ? "" : "opacity-50"}`}>
                 <td className="td font-medium">
                   <Link className="text-brand-700 hover:underline" href={`/info/partner/${p.id}`}>{p.name}</Link>
                 </td>
@@ -294,7 +294,7 @@ export default async function Info({ searchParams }) {
             <div className="hidden lg:block">
               <Table headers={["SKU", "Name", "Category", "Grade", "Unit", "Tax %", "Cost", "Sale", "Status", ""]}>
                 {products.map(p => (
-                  <tr key={p.id} className={`row ${p.active ? "" : "bg-ink-50/50 text-ink-400"}`}>
+                  <tr key={p.id} className={`row ${p.active ? "" : "opacity-50"}`}>
                     <td className="td font-mono text-xs">{p.sku}</td>
                     <td className="td font-medium">{p.name}</td>
                     <td className="td">{p.category || "—"}</td>

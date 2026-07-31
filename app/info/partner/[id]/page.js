@@ -133,7 +133,7 @@ export default async function PartnerDetail({ params }) {
           ) : (
             <div className="space-y-1">
               {p.contacts.map(c => (
-                <div key={c.id} className="flex items-start justify-between gap-2 rounded-lg bg-ink-50 p-2.5">
+                <div key={c.id} className="flex items-start justify-between gap-2 rounded-lg bg-ink-100 p-2.5">
                   <div className="min-w-0 text-sm">
                     <b>{c.name}</b>{c.role && <span className="text-ink-500"> ({c.role})</span>}
                     <div className="truncate text-xs text-ink-500">
@@ -174,7 +174,7 @@ export default async function PartnerDetail({ params }) {
           ) : (
             <div className="space-y-1">
               {p.banks.map(b => (
-                <div key={b.id} className="flex items-start justify-between gap-2 rounded-lg bg-ink-50 p-2.5">
+                <div key={b.id} className="flex items-start justify-between gap-2 rounded-lg bg-ink-100 p-2.5">
                   <div className="min-w-0 text-sm">
                     <b>{b.bankName}</b>
                     <div className="truncate text-xs text-ink-500">

@@ -51,7 +51,7 @@ export default function BookingCard({ booking: b, children }) {
       )}
 
       {/* Containers and price — the numbers worth seeing at a glance */}
-      <div className="mt-3 grid grid-cols-3 gap-2 rounded-lg bg-ink-50 p-2.5 text-center">
+      <div className="mt-3 grid grid-cols-3 gap-2 rounded-lg bg-ink-100 p-2.5 text-center">
         <div>
           <div className="text-2xs uppercase tracking-wider text-ink-400">Booked</div>
           <div className="tnum text-sm font-semibold text-ink-900">{b.bookedContainers ?? "—"}</div>

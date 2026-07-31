@@ -112,7 +112,7 @@ export default async function Settings({ searchParams }) {
 
         <div className="space-y-px overflow-hidden rounded-lg">
           {resets.map(r => (
-            <div key={r.id} className="bg-white p-5">
+            <div key={r.id} className="bg-glass p-5">
               <div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
                 <div className="max-w-xl">
                   <h3 className="flex items-center gap-2 text-sm font-semibold text-ink-900">

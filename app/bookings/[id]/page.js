@@ -98,12 +98,12 @@ export default async function BookingDetail({ params, searchParams }) {
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-ink-200">
-            <thead className="bg-ink-50"><tr>
+            <thead className="bg-sticky"><tr>
               {["#", "Container", "Type", "Description", "Qty", "Supplier", "Product", "Price", "Pricing", "PO", ""].map(h => <th key={h} className="th">{h}</th>)}
             </tr></thead>
             <tbody className="divide-y divide-ink-100">
               {b.lines.map(l => (
-                <tr key={l.id} className="hover:bg-ink-50">
+                <tr key={l.id} className="row">
                   <td className="td">{l.lineNo}</td>
                   <td className="td font-mono text-xs">{l.containerNo || "—"}</td>
                   <td className="td">{l.containerType || "—"}</td>
@@ -136,7 +136,7 @@ export default async function BookingDetail({ params, searchParams }) {
       {b.extractedJson && (
         <details className="card mt-4">
           <summary className="cursor-pointer text-sm font-semibold">Raw extracted data</summary>
-          <pre className="mt-2 overflow-x-auto rounded bg-ink-50 p-3 text-xs">{b.extractedJson}</pre>
+          <pre className="mt-2 overflow-x-auto rounded bg-black/30 p-3 text-xs">{b.extractedJson}</pre>
         </details>
       )}
     </div>

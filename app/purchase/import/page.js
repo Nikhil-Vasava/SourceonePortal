@@ -72,9 +72,9 @@ export default function ImportPo({ searchParams }) {
       <form action={importPo} className="card">
         <span className="label">Purchase order(s) — PDF</span>
         <input type="file" name="file" multiple required accept=".pdf"
-          className="input file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-white hover:file:bg-brand-700" />
+          className="input file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-brand-950 hover:file:bg-brand-400" />
 
-        <div className="mt-4 rounded-lg border border-ink-200/70 bg-ink-50/70 p-4 text-xs leading-relaxed text-ink-600">
+        <div className="mt-4 rounded-lg border border-ink-200 bg-ink-100 p-4 text-xs leading-relaxed text-ink-600">
           <b className="text-ink-700">Read from the document:</b> P.O. No. · Date · Vendor name, address, phone, email ·
           every line item (description, quantity, unit, price, per-unit, pricing term) · payment terms · comments
           <br /><br />

@@ -150,7 +150,7 @@ export default async function Dashboard() {
         <div className="card-flush overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full">
-              <thead className="border-b border-ink-200/70 bg-ink-50/60">
+              <thead className="border-b border-ink-200 bg-sticky">
                 <tr>{["Booking", "Route", "ETD", "ETA", "Lines", "PO", "Slips", "Buyers", "Status"]
                   .map(h => <th key={h} className="th">{h}</th>)}</tr>
               </thead>

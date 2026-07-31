@@ -45,12 +45,12 @@ export default async function Purchase({ searchParams }) {
       ) : (
         <div className="card overflow-x-auto p-0">
           <table className="min-w-full divide-y divide-ink-200">
-            <thead className="bg-ink-50"><tr>
+            <thead className="bg-sticky"><tr>
               {["P.O. No.", "Date", "Supplier", "Products", "Qty", "Value", "Pricing", "Linked Booking", "Source", "Status", "PDF", ""].map(h => <th key={h} className="th">{h}</th>)}
             </tr></thead>
             <tbody className="divide-y divide-ink-100">
               {pos.map(po => (
-                <tr key={po.id} className="hover:bg-ink-50">
+                <tr key={po.id} className="row">
                   <td className="td whitespace-nowrap font-semibold">{po.number}</td>
                   <td className="td whitespace-nowrap">{fdate(po.orderDate)}</td>
                   <td className="td">{po.partner.name}</td>

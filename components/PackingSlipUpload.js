@@ -41,7 +41,7 @@ export default function PackingSlipUpload({ booking, action }) {
             </p>
 
             {slipFile && (
-              <div className="mb-4 rounded-lg border border-ink-200 bg-ink-50/70 px-3 py-2 text-xs text-ink-600">
+              <div className="mb-4 rounded-lg border border-ink-200 bg-ink-100 px-3 py-2 text-xs text-ink-600">
                 Current: <span className="font-medium text-ink-800">{slipFile}</span>
                 {" · "}{filled} of {lineCount} containers filled
               </div>
@@ -52,7 +52,7 @@ export default function PackingSlipUpload({ booking, action }) {
               <input
                 type="file" name="file" required
                 accept=".pdf,.png,.jpg,.jpeg,.webp,.heic,.docx"
-                className="input file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-white hover:file:bg-brand-700"
+                className="input file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-brand-950 hover:file:bg-brand-400"
               />
               <p className="mt-2 text-2xs text-ink-400">
                 PDF, Word or a photo. Container numbers already on a row are matched first;

@@ -110,8 +110,8 @@ export default async function Suppliers({ searchParams }) {
         <div className="alert-warn mb-5">
           <IconAlert size={18} className="mt-0.5 shrink-0" />
           <div>
-            <b>No extraction key set.</b> Add <code className="rounded bg-white px-1">GEMINI_API_KEY</code> to{" "}
-            <code className="rounded bg-white px-1">.env</code>, or type the values straight into each row.
+            <b>No extraction key set.</b> Add <code className="rounded bg-black/30 px-1 font-mono">GEMINI_API_KEY</code> to{" "}
+            <code className="rounded bg-black/30 px-1 font-mono">.env</code>, or type the values straight into each row.
           </div>
         </div>
       )}
@@ -160,9 +160,9 @@ export default async function Suppliers({ searchParams }) {
               const commonSupplier = supplierIds.length === 1 ? supplierIds[0] : "";
 
               return (
-                <div key={b.id} className="card-flush overflow-hidden">
+                <div key={b.id} className="panel overflow-hidden">
                   {/* booking header — the slip belongs to the whole booking */}
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink-200/70 bg-ink-50/60 px-4 py-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink-200 bg-ink-100 px-4 py-3">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                       <Link href={`/bookings/${b.id}`} className="font-semibold text-brand-700 hover:underline">
                         {b.number}
@@ -198,7 +198,7 @@ export default async function Suppliers({ searchParams }) {
 
                   <div className="overflow-x-auto">
                     <table className="min-w-full">
-                      <thead className="border-b border-ink-200/70">
+                      <thead className="border-b border-ink-200">
                         <tr>{["#", "Supplier", "Product", "Container", "Seal", "Packages", "Net (kg)", "Gross (kg)", "Packed", "PO"]
                           .map(h => <th key={h} className="th">{h}</th>)}</tr>
                       </thead>

@@ -112,7 +112,7 @@ export default async function Tracking({ searchParams }) {
           {visible.map(({ b, clocks, buyers }) => (
             <div
               key={b.id}
-              className={`card-flush border-l-4 p-4 ${
+              className={`panel border-l-4 p-4 ${
                 clocks.worst.tone === "red" ? "border-l-red-500"
                 : clocks.worst.tone === "amber" ? "border-l-amber-400"
                 : clocks.worst.tone === "emerald" ? "border-l-emerald-400"

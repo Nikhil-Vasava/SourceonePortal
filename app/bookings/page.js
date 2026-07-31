@@ -59,7 +59,7 @@ export default async function Bookings({ searchParams }) {
   }));
 
   const plain = (o) => JSON.parse(JSON.stringify(o));
-  const td = "border-b border-r border-ink-200/60 px-2.5 py-2 align-middle";
+  const td = "border-b border-r border-ink-200 px-2.5 py-2 align-middle text-ink-700";
 
   return (
     <div>
@@ -118,15 +118,15 @@ export default async function Bookings({ searchParams }) {
                   {COLS.map(c => (
                     <th key={c.label}
                         style={{ minWidth: c.w }}
-                        className={`sticky top-0 z-20 border-b border-r border-ink-200 bg-ink-50 px-2.5 py-2.5
-                                   text-left text-2xs font-semibold uppercase leading-tight tracking-wide text-ink-500
-                                   ${c.sticky ? "left-0 z-30" : ""}`}>
+                        className={`sticky top-0 z-20 border-b border-r border-ink-200 bg-sticky px-2.5 py-2.5
+                                   text-left text-2xs font-semibold uppercase leading-tight tracking-wide text-ink-400
+                                   ${c.sticky ? "left-0 z-30 frozen-edge" : ""}`}>
                       {c.label}
                     </th>
                   ))}
                   {["Status", "Purchase Order", ""].map(h => (
-                    <th key={h} className="sticky top-0 z-20 border-b border-r border-ink-200 bg-ink-50 px-2.5 py-2.5
-                                           text-left text-2xs font-semibold uppercase tracking-wide text-ink-500">
+                    <th key={h} className="sticky top-0 z-20 border-b border-r border-ink-200 bg-sticky px-2.5 py-2.5
+                                           text-left text-2xs font-semibold uppercase tracking-wide text-ink-400">
                       {h}
                     </th>
                   ))}
@@ -134,10 +134,10 @@ export default async function Bookings({ searchParams }) {
               </thead>
               <tbody>
                 {bookings.map(b => (
-                  <tr key={b.id} className="group transition-colors hover:bg-brand-50/40">
+                  <tr key={b.id} className="group row">
                     <td className={td}>{b.freightForwarder || b.forwarder?.name || dash}</td>
-                    <td className={`${td} sticky left-0 z-10 bg-white font-semibold group-hover:bg-brand-50/40`}>
-                      <Link href={`/bookings/${b.id}`} className="text-brand-700 hover:text-brand-800 hover:underline">
+                    <td className={`${td} frozen-cell frozen-edge left-0 z-10 font-semibold`}>
+                      <Link href={`/bookings/${b.id}`} className="text-brand-600 hover:text-brand-400 hover:underline">
                         {b.number}
                       </Link>
                     </td>
@@ -147,7 +147,7 @@ export default async function Bookings({ searchParams }) {
                     <td className={td}>{b.pol || dash}</td>
                     <td className={td}>{b.pod || dash}</td>
                     <td className={td}>{b.placeOfDelivery || dash}</td>
-                    <td className={`${td} text-right tnum font-medium`}>
+                    <td className={`${td} text-right tnum font-semibold figure-key`}>
                       {b.pricePerContainer != null ? fmt(b.pricePerContainer) : dash}
                     </td>
                     <td className={`${td} text-center tnum`}>{b.bookedContainers ?? dash}</td>

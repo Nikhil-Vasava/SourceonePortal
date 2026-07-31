@@ -66,9 +66,9 @@ export default function ImportBooking({ searchParams }) {
       <form action={importBooking} className="card">
         <span className="label">Booking confirmation(s) — PDF</span>
         <input type="file" name="file" multiple required accept=".pdf"
-          className="input file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-white hover:file:bg-brand-700" />
+          className="input file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-brand-950 hover:file:bg-brand-400" />
 
-        <div className="mt-4 rounded-lg border border-ink-200/70 bg-ink-50/70 p-4 text-xs leading-relaxed text-ink-600">
+        <div className="mt-4 rounded-lg border border-ink-200 bg-ink-100 p-4 text-xs leading-relaxed text-ink-600">
           <b className="text-ink-700">Recognised formats:</b> Maersk · MSC · ONE (Ocean Network Express).
           Other carriers fall back to a generic reader and may need a few fields filled in by hand.
           <br /><br />

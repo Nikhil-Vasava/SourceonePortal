@@ -51,11 +51,11 @@ export default function ResetButton({ action, label, confirmWord, severe = false
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/40 p-4 animate-fade-in"
+          className="overlay items-center"
           onClick={close}
         >
           <div
-            className="w-full max-w-md rounded-xl bg-white p-6 shadow-pop animate-scale-in"
+            className="modal max-w-md"
             onClick={e => e.stopPropagation()}
           >
             <div className="mb-1 flex items-start justify-between gap-3">

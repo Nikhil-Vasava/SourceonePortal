@@ -17,17 +17,17 @@ export default function AppShell({ user, children }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Top bar — mobile only; the sidebar carries the branding on desktop */}
-        <header className="flex items-center gap-3 border-b border-ink-200/70 bg-white px-4 py-3 lg:hidden">
+        <header className="glass-surface flex items-center gap-3 px-4 py-3 lg:hidden">
           <button
             onClick={() => setNavOpen(true)}
-            className="rounded-md p-1.5 text-ink-600 hover:bg-ink-100"
+            className="icon-btn"
             aria-label="Open navigation"
           >
             <IconMenu size={20} />
           </button>
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-brand-400 to-teal-500">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white"
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-brand-500 to-teal-500 shadow-glow">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#04212a"
                    strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M3 18c1.6 0 1.6 1.4 3.2 1.4S7.8 18 9.4 18s1.6 1.4 3.2 1.4S14.2 18 15.8 18s1.6 1.4 3.2 1.4" />
                 <path d="M4.8 14.4 12 12l7.2 2.4-1.1 3.1H5.9z" />

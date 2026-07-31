@@ -59,8 +59,8 @@ export default async function Buyers() {
           <div className="mb-4 text-sm text-ink-500">{allocated} of {allLines.length} container lines allocated to a buyer</div>
 
           {bookings.map(b => (
-            <div key={b.id} className="card mb-4 p-0">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-ink-50 p-3">
+            <div key={b.id} className="panel mb-4 overflow-hidden">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-ink-100 p-3">
                 <div>
                   <Link href={`/bookings/${b.id}`} className="font-semibold text-brand-700">{b.number}</Link>
                   <span className="ml-2 text-xs text-ink-500">
@@ -83,12 +83,12 @@ export default async function Buyers() {
 
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-ink-200">
-                  <thead className="bg-white"><tr>
+                  <thead className="bg-sticky"><tr>
                     {["#", "Container", "Product", "Supplier", "Net (kg)", "Buyer", "Sale Price", "Terms", "Allocated", ""].map(h => <th key={h} className="th">{h}</th>)}
                   </tr></thead>
                   <tbody className="divide-y divide-ink-100">
                     {b.lines.map(l => (
-                      <tr key={l.id} className="hover:bg-ink-50">
+                      <tr key={l.id} className="row">
                         <td className="td">{l.lineNo}</td>
                         <td className="td font-mono text-xs">{l.containerNo || "—"}</td>
                         <td className="td">{l.product?.name || l.description || "—"}</td>

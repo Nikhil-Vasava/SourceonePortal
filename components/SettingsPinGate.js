@@ -52,7 +52,7 @@ export default function SettingsPinGate({ configured, minutes }) {
         <IconAlert size={18} className="mt-0.5 shrink-0" />
         <div>
           <b>No PIN is set.</b> Settings is locked until{" "}
-          <code className="rounded bg-white px-1">SETTINGS_PIN</code> is added to the
+          <code className="rounded bg-black/30 px-1 font-mono">SETTINGS_PIN</code> is added to the
           environment variables — at least 4 characters. On Vercel that&apos;s
           Settings → Environment Variables, then redeploy.
         </div>

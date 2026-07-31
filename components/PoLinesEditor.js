@@ -16,7 +16,7 @@ export default function PoLinesEditor({ products }) {
 
       <div className="space-y-2">
         {rows.map((r, i) => (
-          <div key={r.key} className="grid grid-cols-2 items-end gap-2 rounded-lg border border-ink-200 bg-ink-50/40 p-2.5 sm:grid-cols-6 lg:grid-cols-12">
+          <div key={r.key} className="grid grid-cols-2 items-end gap-2 rounded-lg border border-ink-200 bg-ink-100 p-2.5 sm:grid-cols-6 lg:grid-cols-12">
             <div className="col-span-4">
               {i === 0 && <span className="label">Product</span>}
               <select name="productId" required={i === 0} className="input">

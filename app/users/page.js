@@ -31,7 +31,7 @@ export default async function Users() {
       <PageHeader title="Users" subtitle="Role-based access: ADMIN · MANAGER · USER" />
       <Table headers={["Name", "Email", "Role", "Region", "Status", ""]}>
         {users.map(u => (
-          <tr key={u.id} className="hover:bg-ink-50">
+          <tr key={u.id} className="row">
             <td className="td font-medium">{u.name}</td>
             <td className="td">{u.email}</td>
             <td className="td"><span className="badge bg-brand-50 text-brand-700">{u.role}</span></td>

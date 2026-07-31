@@ -10,7 +10,7 @@ import { TONE_CLASS } from "@/lib/sla";
 export function SlaBadge({ clock, label, estimate = false }) {
   if (clock.band === "unknown") {
     return (
-      <div className="rounded-lg border border-ink-200 bg-ink-50 px-3 py-2">
+      <div className="rounded-lg border border-ink-200 bg-ink-100 px-3 py-2">
         <div className="text-2xs uppercase tracking-wider text-ink-400">{label}</div>
         <div className="mt-0.5 text-sm text-ink-400">Not started</div>
       </div>

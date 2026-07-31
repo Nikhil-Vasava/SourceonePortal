@@ -63,7 +63,7 @@ export function Table({ headers, children, dense = false }) {
     <div className="card-flush overflow-hidden">
       <div className="overflow-x-auto">
         <table className="min-w-full">
-          <thead className="border-b border-ink-200/70 bg-ink-50/60">
+          <thead className="border-b border-ink-200 bg-sticky">
             <tr>{headers.map((h, i) => <th key={i} className={`th ${dense ? "py-2" : ""}`}>{h}</th>)}</tr>
           </thead>
           <tbody className="divide-y divide-ink-100">{children}</tbody>
@@ -106,7 +106,7 @@ export function Stat({ label, value, href, hint, tone = "default", progress }) {
       </div>
       {progress != null && (
         <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-ink-100">
-          <div className={`h-full rounded-full transition-all ${tone === "warn" ? "bg-amber-400" : "bg-brand-500"}`}
+          <div className={`h-full rounded-full transition-[width] duration-200 ease-out ${tone === "warn" ? "bg-amber-400" : "bg-brand-500"}`}
                style={{ width: `${Math.max(0, Math.min(100, progress))}%` }} />
         </div>
       )}
