@@ -91,25 +91,24 @@ export default function Sidebar({ user, open, onClose }) {
         aria-label="Main navigation"
       >
         {/* Brand */}
-        <div className="flex items-center gap-2.5 px-5 py-5">
-          {/* The mark carries on dark as-is — light globe, green and kraft
-              arrows. Recolouring it is against the brand rules. */}
-          <img
-            src="/logo-mark.svg"
-            alt=""
-            width={36}
-            height={36}
-            className="h-9 w-9 shrink-0"
-          />
-          <div className="leading-tight">
-            <div className="text-[15px] font-semibold tracking-tight text-ink-900">SourceOne</div>
-            <div className="text-2xs font-medium uppercase tracking-widest text-ink-400">Trade ERP</div>
-          </div>
+        {/* The full horizontal lockup, reversed for dark backgrounds. The rail
+            is 240px wide; at 158px the lockup clears the 120px minimum in the
+            brand guide and still leaves room for the mobile close button. */}
+        <div className="flex items-center gap-2 px-4 py-5">
+          <Link href="/" aria-label="SourceOne — dashboard" className="min-w-0">
+            <img
+              src="/logo-horizontal-dark.svg"
+              alt="Source One Ventures"
+              width={158}
+              height={56}
+              className="h-auto w-[158px]"
+            />
+          </Link>
 
           {/* Close — mobile only */}
           <button
             onClick={onClose}
-            className="icon-btn ml-auto lg:hidden"
+            className="icon-btn ml-auto shrink-0 lg:hidden"
             aria-label="Close navigation"
           >
             <IconX size={18} />

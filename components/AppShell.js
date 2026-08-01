@@ -25,10 +25,15 @@ export default function AppShell({ user, children }) {
           >
             <IconMenu size={20} />
           </button>
-          <div className="flex items-center gap-2">
-            <img src="/logo-mark.svg" alt="" width={28} height={28} className="h-7 w-7 shrink-0" />
-            <span className="text-sm font-semibold tracking-tight text-ink-900">SourceOne</span>
-          </div>
+          {/* Same lockup as the rail, so the brand doesn't change shape when
+              the sidebar collapses. 140px still clears the 120px minimum. */}
+          <img
+            src="/logo-horizontal-dark.svg"
+            alt="Source One Ventures"
+            width={140}
+            height={50}
+            className="h-auto w-[140px]"
+          />
         </header>
 
         <main className="flex-1 overflow-y-auto overflow-x-hidden">
