@@ -3,8 +3,29 @@ import { getUser } from "@/lib/auth";
 import AppShell from "@/components/AppShell";
 
 export const metadata = {
-  title: "SourceOne ERP",
-  description: "Import / Export Trade Operations",
+  title: {
+    default: "SourceOne ERP",
+    // Every page gets "Bookings · SourceOne ERP" without repeating itself.
+    template: "%s · SourceOne ERP",
+  },
+  description: "Import / Export Trade Operations — Source One Ventures NZ Ltd",
+  applicationName: "SourceOne ERP",
+
+  // The mark, not a lockup — it renders at 16px in a browser tab.
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/logo-mark.svg", type: "image/svg+xml" },
+    ],
+    apple: "/logo-mark-256.png",
+  },
+
+  // Saved to a phone home screen, this is the name that shows.
+  appleWebApp: {
+    title: "SourceOne",
+    capable: true,
+    statusBarStyle: "black-translucent",
+  },
 };
 
 // width=device-width stops mobile browsers rendering at a fake 980px and
@@ -13,7 +34,9 @@ export const metadata = {
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0f172a",
+  // Matches the page background so the phone's status bar and the browser
+  // chrome blend into the app instead of banding against it.
+  themeColor: "#0A1118",
 };
 
 export default function RootLayout({ children }) {

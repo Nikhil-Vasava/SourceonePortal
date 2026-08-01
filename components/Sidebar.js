@@ -92,14 +92,15 @@ export default function Sidebar({ user, open, onClose }) {
       >
         {/* Brand */}
         <div className="flex items-center gap-2.5 px-5 py-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-teal-500 shadow-glow">
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#04212a"
-                 strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M3 18c1.6 0 1.6 1.4 3.2 1.4S7.8 18 9.4 18s1.6 1.4 3.2 1.4S14.2 18 15.8 18s1.6 1.4 3.2 1.4" />
-              <path d="M4.8 14.4 12 12l7.2 2.4-1.1 3.1H5.9z" />
-              <path d="M12 12V6.4M8.8 8.8h6.4" />
-            </svg>
-          </div>
+          {/* The mark carries on dark as-is — light globe, green and kraft
+              arrows. Recolouring it is against the brand rules. */}
+          <img
+            src="/logo-mark.svg"
+            alt=""
+            width={36}
+            height={36}
+            className="h-9 w-9 shrink-0"
+          />
           <div className="leading-tight">
             <div className="text-[15px] font-semibold tracking-tight text-ink-900">SourceOne</div>
             <div className="text-2xs font-medium uppercase tracking-widest text-ink-400">Trade ERP</div>

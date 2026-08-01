@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 200" width="560" height="200" role="img" aria-label="Source One Ventures">
+  <title>Source One Ventures — horizontal lockup</title>
+  <defs>
+    <clipPath id="gclip"><circle r="60"/></clipPath>
+    <path id="arw" d="M -87.7 -7.7 A 88 88 0 0 1 76.2 -44 L 86 -49.6 L 78.3 -16.6 L 52.7 -30.4 L 62.4 -36 A 72 72 0 0 0 -71.7 -6.3 Z"/>
+    <g id="land" fill="#2f6b45">
+      <path d="M -54 -44 C -42 -52 -24 -47 -17 -36 C -13 -29 -18 -24 -25 -22 C -31 -20 -33 -14 -35 -7 C -38 -14 -44 -18 -50 -25 C -56 -32 -58 -39 -54 -44 Z"/>
+      <path d="M -35 -7 C -32 -4 -29 -1 -26 4 C -25 7 -27 9 -30 6 C -33 2 -36 -2 -35 -7 Z"/>
+      <path d="M -28 4 C -21 1 -15 6 -13 14 C -11 23 -16 33 -22 43 C -25 48 -30 47 -30 40 C -30 32 -33 24 -37 18 C -40 12 -35 6 -28 4 Z"/>
+      <path d="M -22 -52 C -13 -57 -3 -54 -6 -47 C -9 -42 -17 -43 -22 -47 Z"/>
+      <path d="M 3 -35 C 14 -42 29 -39 35 -32 C 39 -27 34 -23 27 -24 C 21 -25 13 -23 7 -26 C 2 -28 0 -32 3 -35 Z"/>
+      <path d="M 5 -22 C 16 -27 33 -24 37 -16 C 41 -7 34 1 30 9 C 26 17 24 29 20 35 C 17 39 12 37 12 30 C 12 22 9 14 5 8 C 1 2 -1 -7 1 -15 C 2 -19 3 -21 5 -22 Z"/>
+      <path d="M 33 15 C 36 12 39 17 37 22 C 35 26 31 24 32 20 Z"/>
+    </g>
+    <g id="mark">
+      <circle r="60" fill="#cfe3f5"/>
+      <g clip-path="url(#gclip)">
+        <use href="#land"/>
+        <g stroke="#12315a" stroke-width="1.2" fill="none" opacity="0.22">
+          <ellipse rx="26" ry="60"/><ellipse rx="46" ry="60"/>
+          <line x1="-60" y1="-31" x2="60" y2="-31"/><line x1="-60" y1="31" x2="60" y2="31"/><line x1="-60" y1="0" x2="60" y2="0"/>
+        </g>
+        <circle cx="34" cy="34" r="62" fill="#12315a" opacity="0.16"/>
+        <circle cx="-26" cy="-26" r="34" fill="#ffffff" opacity="0.14"/>
+      </g>
+      <circle r="60" fill="none" stroke="#12315a" stroke-width="4"/>
+      <use href="#arw" fill="#2e7d4f"/>
+      <use href="#arw" fill="#c8944b" transform="rotate(180)"/>
+    </g>
+  </defs>
+  <g transform="translate(100,100)">
+    <use href="#mark"/>
+    <text x="115" y="-4" font-family="Helvetica Neue, Arial, sans-serif" font-size="42" font-weight="500" letter-spacing="4" fill="#12315a">SOURCE ONE</text>
+    <text x="117" y="30" font-family="Helvetica Neue, Arial, sans-serif" font-size="17" letter-spacing="13" fill="#2e7d4f">VENTURES</text>
+  </g>
+</svg>

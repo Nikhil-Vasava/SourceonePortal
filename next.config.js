@@ -23,7 +23,8 @@ module.exports = {
         "./node_modules/.prisma/client/**",
         "./node_modules/@prisma/client/**",
       ],
-      "/api/po/[id]": ["./public/fonts/**"],
+      // The PO route reads both the fonts and the logo off disk at request time.
+      "/api/po/[id]": ["./public/fonts/**", "./public/logo-mark-256.png"],
     },
 
     // Documents are posted to server actions; the 1 MB default is too small for

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Source One Ventures — 3D logo</title>
+<style>
+  body{margin:0;background:#f4f7fa;font-family:Helvetica Neue,Arial,sans-serif;color:#12315a;display:flex;flex-direction:column;align-items:center;padding:32px 16px}
+  #stage{width:520px;height:520px;max-width:92vw;cursor:grab}
+  #stage:active{cursor:grabbing}
+  h1{font-size:34px;font-weight:500;letter-spacing:4px;margin:4px 0 2px}
+  h2{font-size:14px;font-weight:400;letter-spacing:11px;color:#2e7d4f;margin:0 0 20px}
+  .bar{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  button{font:inherit;font-size:13px;padding:8px 16px;border:1px solid #c3d3e3;background:#fff;color:#12315a;border-radius:8px;cursor:pointer}
+  button:hover{border-color:#12315a}
+  p.hint{font-size:12px;color:#6b7f95;margin-top:14px}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<h1>SOURCE ONE</h1>
+<h2>VENTURES</h2>
+<div class="bar">
+  <button onclick="setBg('#f4f7fa')">Light bg</button>
+  <button onclick="setBg('#0e1a26')">Dark bg</button>
+  <button onclick="setBg('transparent')">Transparent</button>
+  <button onclick="snap()">Download PNG</button>
+  <button onclick="spin=!spin">Pause / play</button>
+</div>
+<p class="hint">Drag to rotate. "Download PNG" saves a transparent 1040&times;1040 render.</p>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const OCEAN='#2f7fb8', DEEP='#154a78', LAND='#2f7d4f', LAND2='#3f9a63';
+const stage=document.getElementById('stage');
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(32,1,0.1,100);
+camera.position.set(0,0.55,7.2);
+camera.lookAt(0,0,0);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(520,520);
+stage.appendChild(renderer.domElement);
+
+function blob(ctx,x,y,pts,scale){
+  ctx.beginPath();
+  for(let i=0;i<pts.length;i++){
+    const p=pts[i];
+    const nx=x+p[0]*scale, ny=y+p[1]*scale;
+    i?ctx.lineTo(nx,ny):ctx.moveTo(nx,ny);
+  }
+  ctx.closePath();ctx.fill();
+}
+function makeTexture(){
+  const c=document.createElement('canvas');c.width=2048;c.height=1024;
+  const g=c.getContext('2d');
+  const grd=g.createLinearGradient(0,0,0,1024);
+  grd.addColorStop(0,DEEP);grd.addColorStop(0.5,OCEAN);grd.addColorStop(1,DEEP);
+  g.fillStyle=grd;g.fillRect(0,0,2048,1024);
+  const L=[
+    [455,255,[[-60,-40],[0,-62],[62,-42],[78,-4],[46,26],[16,20],[-6,44],[-30,26],[-62,4]],1.55],
+    [682,600,[[-28,-40],[18,-34],[34,4],[16,52],[-6,86],[-26,64],[-22,20],[-40,-8]],1.35],
+    [1138,512,[[-40,-58],[26,-66],[62,-30],[52,10],[34,58],[6,96],[-18,58],[-30,10],[-46,-22]],1.3],
+    [1110,228,[[-52,-18],[-8,-40],[46,-30],[70,-6],[36,14],[-6,22],[-38,12]],1.25],
+    [1536,256,[[-90,-46],[10,-70],[110,-40],[150,0],[96,44],[10,60],[-56,36],[-100,4]],1.3],
+    [1792,654,[[-56,-22],[6,-38],[58,-16],[46,26],[-8,40],[-50,20]],1.25],
+    [784,102,[[-40,-22],[8,-34],[44,-10],[28,22],[-18,26]],1.2],
+    [1690,860,[[-24,-12],[16,-18],[26,6],[0,20],[-24,10]],1.0]
+  ];
+  g.fillStyle=LAND;
+  L.forEach(d=>blob(g,d[0],d[1],d[2],d[3]));
+  g.globalAlpha=0.35;g.fillStyle=LAND2;
+  L.forEach(d=>blob(g,d[0]-6,d[1]-8,d[2],d[3]*0.82));
+  g.globalAlpha=1;
+  const t=new THREE.CanvasTexture(c);t.anisotropy=8;return t;
+}
+
+const globe=new THREE.Mesh(
+  new THREE.SphereGeometry(1,96,96),
+  new THREE.MeshPhongMaterial({map:makeTexture(),shininess:22,specular:0x335577})
+);
+scene.add(globe);
+scene.add(new THREE.Mesh(
+  new THREE.SphereGeometry(1.045,64,64),
+  new THREE.MeshBasicMaterial({color:0x9fd0f5,transparent:true,opacity:0.10,side:THREE.BackSide})
+));
+
+function arrow(color,startAngle){
+  const mat=new THREE.MeshPhongMaterial({color:color,shininess:60,specular:0x666666});
+  const inner=new THREE.Group();
+  const R=1.45,arc=2.45;
+  inner.add(new THREE.Mesh(new THREE.TorusGeometry(R,0.085,24,120,arc),mat));
+  const head=new THREE.Mesh(new THREE.ConeGeometry(0.21,0.4,28),mat);
+  head.position.set(R*Math.cos(arc),R*Math.sin(arc),0);
+  head.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3(-Math.sin(arc),Math.cos(arc),0));
+  inner.add(head);
+  inner.rotation.z=startAngle;
+  const outer=new THREE.Group();
+  outer.rotation.x=0.42;
+  outer.add(inner);
+  outer.userData.inner=inner;
+  return outer;
+}
+const rings=new THREE.Group();
+const armA=arrow(0x2e7d4f,-0.35), armB=arrow(0xc8944b,-0.35+Math.PI);
+const arms=[armA.userData.inner,armB.userData.inner];
+rings.add(armA);rings.add(armB);
+scene.add(rings);
+
+scene.add(new THREE.AmbientLight(0xffffff,0.62));
+const key=new THREE.DirectionalLight(0xffffff,0.95);key.position.set(-3,3.5,4);scene.add(key);
+const rim=new THREE.DirectionalLight(0x9fd0f5,0.45);rim.position.set(3,-2,-3);scene.add(rim);
+
+let spin=true,drag=false,px=0,py=0;
+stage.addEventListener('pointerdown',e=>{drag=true;px=e.clientX;py=e.clientY;});
+addEventListener('pointerup',()=>drag=false);
+addEventListener('pointermove',e=>{
+  if(!drag)return;
+  globe.rotation.y+=(e.clientX-px)*0.006;
+  rings.rotation.y+=(e.clientX-px)*0.003;
+  rings.rotation.x+=(e.clientY-py)*0.004;
+  px=e.clientX;py=e.clientY;
+});
+function loop(){
+  requestAnimationFrame(loop);
+  if(spin){
+    globe.rotation.y+=0.0026;
+    arms.forEach(a=>a.rotation.z+=0.010);
+  }
+  renderer.render(scene,camera);
+}
+loop();
+function setBg(c){document.body.style.background=c==='transparent'?'repeating-conic-gradient(#e6ecf2 0% 25%, #fff 0% 50%) 50%/22px 22px':c;document.body.style.color=c==='#0e1a26'?'#dce9f5':'#12315a';}
+function snap(){
+  renderer.setSize(1040,1040);renderer.render(scene,camera);
+  const a=document.createElement('a');
+  a.download='sourceone-logo-3d.png';a.href=renderer.domElement.toDataURL('image/png');a.click();
+  renderer.setSize(520,520);
+}
+</script>
+</body>
+</html>
