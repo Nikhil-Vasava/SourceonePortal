@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { IconUpload } from "@/components/icons";
+import Portal from "@/components/Portal";
 
 function SubmitBtn({ done }) {
   const { pending } = useFormStatus();
@@ -29,6 +30,7 @@ export default function PackingSlipUpload({ booking, action }) {
       </button>
 
       {open && (
+        <Portal>
         <div className="overlay items-center" onClick={() => setOpen(false)}>
           <div className="modal max-w-lg" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-semibold tracking-tight text-ink-900">
@@ -66,6 +68,7 @@ export default function PackingSlipUpload({ booking, action }) {
             </form>
           </div>
         </div>
+        </Portal>
       )}
     </>
   );

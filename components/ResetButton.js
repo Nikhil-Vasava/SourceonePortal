@@ -10,6 +10,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { IconAlert, IconX } from "@/components/icons";
+import Portal from "@/components/Portal";
 
 export default function ResetButton({ action, label, confirmWord, severe = false }) {
   const [open, setOpen] = useState(false);
@@ -50,6 +51,7 @@ export default function ResetButton({ action, label, confirmWord, severe = false
       </button>
 
       {open && (
+        <Portal>
         <div
           className="overlay items-center"
           onClick={close}
@@ -101,6 +103,7 @@ export default function ResetButton({ action, label, confirmWord, severe = false
             </div>
           </div>
         </div>
+        </Portal>
       )}
     </>
   );

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { IconPencil } from "@/components/icons";
+import Portal from "@/components/Portal";
 
 const d = (v) => (v ? String(v).slice(0, 10) : "");
 
@@ -14,6 +15,7 @@ export default function EditBookingModal({ booking, action }) {
       </button>
 
       {open && (
+        <Portal>
         <div className="overlay" onClick={() => setOpen(false)}>
           <div className="modal max-w-3xl" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-semibold tracking-tight text-ink-900">Edit booking {b.number}</h3>
@@ -67,6 +69,7 @@ export default function EditBookingModal({ booking, action }) {
             </form>
           </div>
         </div>
+        </Portal>
       )}
     </>
   );

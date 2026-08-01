@@ -10,6 +10,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { IconTrash, IconAlert, IconX, IconCheck } from "@/components/icons";
+import Portal from "@/components/Portal";
 
 export function ToggleActive({ id, active, action }) {
   const [busy, setBusy] = useState(false);
@@ -76,6 +77,7 @@ export function DeleteRecord({ id, name, action, label = "record" }) {
       </button>
 
       {open && (
+        <Portal>
         <div className="overlay" onClick={() => !busy && setOpen(false)}>
           <div className="modal max-w-md" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
             <div className="mb-3 flex items-start justify-between gap-3">
@@ -112,6 +114,7 @@ export function DeleteRecord({ id, name, action, label = "record" }) {
             </div>
           </div>
         </div>
+        </Portal>
       )}
     </>
   );

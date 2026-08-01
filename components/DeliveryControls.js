@@ -8,11 +8,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { IconCheck, IconX, IconAlert, IconClock } from "@/components/icons";
+import Portal from "@/components/Portal";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
 function Dialog({ title, children, onClose }) {
   return (
+    <Portal>
     <div className="overlay" onClick={onClose}>
       <div className="modal max-w-md" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true">
         <div className="mb-4 flex items-start justify-between gap-3">
@@ -24,6 +26,7 @@ function Dialog({ title, children, onClose }) {
         {children}
       </div>
     </div>
+    </Portal>
   );
 }
 

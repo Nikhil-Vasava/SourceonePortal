@@ -14,6 +14,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { IconX, IconPlus, IconPencil, IconAlert } from "@/components/icons";
+import Portal from "@/components/Portal";
 
 /**
  * @param {Array}  fields   [{ name, label, type, options, required, placeholder, full }]
@@ -80,6 +81,7 @@ export default function RecordModal({
       )}
 
       {open && (
+        <Portal>
         <div className="overlay" onClick={() => !busy && close()}>
           <div
             className="modal max-w-3xl"
@@ -159,6 +161,7 @@ export default function RecordModal({
             </form>
           </div>
         </div>
+        </Portal>
       )}
     </>
   );
