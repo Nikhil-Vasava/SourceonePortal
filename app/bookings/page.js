@@ -78,6 +78,9 @@ export default async function Bookings({ searchParams }) {
           <div>
             <b>Imported {searchParams.imported} booking{searchParams.imported === "1" ? "" : "s"}.</b>{" "}
             Review the rows below, then fill in Price / Cont. via <b>Edit</b>.
+            {searchParams.how && (
+              <div className="mt-1 text-2xs opacity-80">Read by: {decodeURIComponent(searchParams.how)}</div>
+            )}
           </div>
         </div>
       )}

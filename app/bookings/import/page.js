@@ -1,98 +1,131 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
-import { pdfToText } from "@/lib/pdf-text";
-import { parseBookingText } from "@/lib/booking-parsers";
-import { createBookingFromExtract } from "@/lib/booking-import";
+import { readBookingDocument, createBookingFromExtract } from "@/lib/booking-import";
+import { hasGeminiKey } from "@/lib/gemini";
 import { PageHeader } from "@/components/ui";
+import { IconAlert } from "@/components/icons";
 
 export const dynamic = "force-dynamic";
 
 async function importBooking(formData) {
   "use server";
   const files = formData.getAll("file").filter(f => f && f.size);
-  if (!files.length) redirect("/bookings/import?error=" + encodeURIComponent("Please choose at least one file."));
+  if (!files.length) {
+    redirect("/bookings/import?error=" + encodeURIComponent("Please choose at least one file."));
+  }
 
   const created = [];
   const notes = [];
 
   for (const file of files) {
-    if (!/\.pdf$/i.test(file.name)) {
+    if (!/\.(pdf|png|jpe?g|webp|heic)$/i.test(file.name)) {
       redirect("/bookings/import?error=" + encodeURIComponent(
-        `${file.name}: only PDF booking confirmations can be read. Add this one manually.`));
+        `${file.name}: upload a PDF or a photo of the booking confirmation.`));
     }
 
-    let parsed;
+    let read;
     try {
-      const text = await pdfToText(Buffer.from(await file.arrayBuffer()));
-      parsed = parseBookingText(text);
+      read = await readBookingDocument(Buffer.from(await file.arrayBuffer()), file.name);
     } catch (e) {
       redirect("/bookings/import?error=" + encodeURIComponent(`${file.name}: ${e.message}`));
     }
 
-    if (!parsed.data.bookingNumber) {
-      redirect("/bookings/import?error=" + encodeURIComponent(
-        `${file.name}: couldn't find a booking number — this layout isn't recognised yet. Add it manually, or send me the PDF so I can add support.`));
-    }
-
     try {
-      const b = await createBookingFromExtract(parsed.data, file.name);
+      const b = await createBookingFromExtract(read.data, file.name);
       created.push(b.id);
-      notes.push(`${parsed.data.bookingNumber} (${parsed.carrier})`);
+      notes.push(`${read.data.bookingNumber} · ${read.provider}`);
     } catch (e) {
       const msg = String(e.message).includes("Unique constraint")
-        ? `${file.name}: booking ${parsed.data.bookingNumber} already exists.`
+        ? `${file.name}: booking ${read.data.bookingNumber} already exists.`
         : `${file.name}: ${e.message}`;
       redirect("/bookings/import?error=" + encodeURIComponent(msg));
     }
   }
 
-  if (created.length === 1) redirect(`/bookings/${created[0]}?imported=1`);
-  redirect(`/bookings?imported=${created.length}`);
+  const how = encodeURIComponent(notes.join(" · "));
+  if (created.length === 1) redirect(`/bookings/${created[0]}?imported=1&how=${how}`);
+  redirect(`/bookings?imported=${created.length}&how=${how}`);
 }
 
 export default function ImportBooking({ searchParams }) {
   requireUser();
+  const aiReady = hasGeminiKey();
+
   return (
     <div className="max-w-2xl">
-      <PageHeader title="Import Booking" subtitle="Upload carrier booking confirmations — read instantly, no AI service involved" />
+      <PageHeader
+        title="Import Booking"
+        subtitle="Upload carrier booking confirmations — read on this machine first, AI only if needed"
+      />
 
       {searchParams?.error && (
         <div className="alert-error mb-5">
-          <b>Import failed.</b> {decodeURIComponent(searchParams.error)}
+          <IconAlert size={18} className="mt-0.5 shrink-0" />
+          <div><b>Import failed.</b> {decodeURIComponent(searchParams.error)}</div>
+        </div>
+      )}
+
+      {!aiReady && (
+        <div className="alert-warn mb-5">
+          <IconAlert size={18} className="mt-0.5 shrink-0" />
+          <div>
+            <b>No <code className="rounded bg-black/30 px-1 font-mono">GEMINI_API_KEY</code> set.</b>{" "}
+            Maersk, MSC and ONE still import normally. Other carriers and scanned
+            documents will need adding by hand.
+          </div>
         </div>
       )}
 
       <form action={importBooking} className="card">
-        <span className="label">Booking confirmation(s) — PDF</span>
-        <input type="file" name="file" multiple required accept=".pdf"
-          className="input file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-brand-950 hover:file:bg-brand-400" />
+        <span className="label">Booking confirmation(s)</span>
+        <input
+          type="file" name="file" multiple required
+          accept=".pdf,.png,.jpg,.jpeg,.webp,.heic"
+          className="input file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-brand-950 hover:file:bg-brand-400"
+        />
 
         <div className="mt-4 rounded-lg border border-ink-200 bg-ink-100 p-4 text-xs leading-relaxed text-ink-600">
-          <b className="text-ink-700">Recognised formats:</b> Maersk · MSC · ONE (Ocean Network Express).
-          Other carriers fall back to a generic reader and may need a few fields filled in by hand.
-          <br /><br />
-          <b className="text-ink-700">Read from the document:</b> Freight Forwarder · Booking No · Shipping Line · Vessel · Voyage ·
-          Port of Loading · Port of Destination · Place of Delivery · Booked Cont. · Container Type · ERD · Docs Cut Off ·
-          Cargo Cut-Off · ETD/ETA · Commodity · Gross Weight
-          <br /><br />
-          <b className="text-ink-700">You fill in later:</b> Price / Cont. · Loaded Cont. · Other Cont. · SI Sent Date —
-          these never appear in carrier documents. Use <b>Edit</b> on the booking row.
+          <b className="text-ink-700">How each file is read</b>
+          <ol className="mt-2 list-decimal space-y-1 pl-4">
+            <li>
+              <b className="text-ink-700">Built-in parser</b> — Maersk, MSC and ONE are
+              recognised exactly, on this machine. Instant, free, no usage limits.
+            </li>
+            <li>
+              <b className="text-ink-700">Gemini</b> — used only when the layout isn&apos;t
+              recognised, or the PDF is a scan with no text in it. Anything the parser
+              did find is kept in preference to the model&apos;s reading.
+            </li>
+          </ol>
+
+          <div className="mt-3 border-t border-ink-200 pt-3">
+            <b className="text-ink-700">Read from the document:</b> Freight Forwarder · Booking No ·
+            Shipping Line · Vessel · Voyage · Port of Loading · Port of Destination ·
+            Place of Delivery · Booked Cont. · Container Type · ERD · Docs Cut Off ·
+            Cargo Cut-Off · ETD/ETA · Commodity · Gross Weight
+          </div>
+
+          <div className="mt-3">
+            <b className="text-ink-700">You fill in later:</b> Price / Cont. · Loaded Cont. ·
+            Other Cont. · SI Sent Date — these never appear in carrier documents.
+            Use <b>Edit</b> on the booking row.
+          </div>
         </div>
 
         <p className="mt-2 text-xs text-ink-500">
-          Select several files to import multiple bookings at once. Reading happens on your own machine, so there are no
-          usage limits and nothing is sent to an external service.
+          Select several files to import multiple bookings at once. Scans and photos are
+          fine now — they&apos;re read as images when there&apos;s no text layer.
         </p>
 
         <div className="mt-4 flex gap-2">
-          <button className="btn">Read &amp; Create Booking</button>
+          <button className="btn">Read &amp; create booking</button>
           <Link href="/bookings" className="btn-secondary">Cancel</Link>
         </div>
       </form>
 
       <p className="mt-3 text-xs text-ink-500">
-        Scanned or photographed bookings have no text layer and can't be read — <Link href="/bookings/new" className="underline">add those manually</Link>.
+        Nothing to upload? <Link href="/bookings/new" className="text-brand-600 hover:underline">Add a booking manually</Link>.
       </p>
     </div>
   );
