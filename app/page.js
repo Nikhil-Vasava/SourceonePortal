@@ -7,6 +7,7 @@ import { IconUpload, IconArrowRight, IconAlert, IconClock } from "@/components/i
 import { getCompany } from "@/lib/company";
 import { bookingClocks, severity, needsFollowUp } from "@/lib/sla";
 import { SlaPill } from "@/components/SlaBadge";
+import { ACTIVE_BOOKING, ACTIVE_BOOKING_LINE } from "@/lib/booking-scope";
 
 export const dynamic = "force-dynamic";
 
@@ -27,11 +28,13 @@ function Meter({ done, total }) {
 
 export default async function Dashboard() {
   requireUser();
-  const [bookings, lines, pos, company] = await Promise.all([
-    prisma.booking.findMany({ include: { lines: true }, orderBy: { id: "desc" } }),
-    prisma.bookingLine.findMany(),
+  const [bookings, lines, pos, company, cancelledCount] = await Promise.all([
+    prisma.booking.findMany({ where: ACTIVE_BOOKING, include: { lines: true }, orderBy: { id: "desc" } }),
+    // Container-line counts drive the "awaiting" tiles; cancelled work isn't pending.
+    prisma.bookingLine.findMany({ where: ACTIVE_BOOKING_LINE }),
     prisma.purchaseOrder.findMany({ select: { id: true, fromBookingId: true } }),
     getCompany(),
+    prisma.booking.count({ where: { status: "CANCELLED" } }),
   ]);
 
   const active = bookings.filter(b => ["DRAFT", "CONFIRMED", "SHIPPED"].includes(b.status)).length;
@@ -43,7 +46,8 @@ export default async function Dashboard() {
   const n = lines.length || 1;
 
   const kpis = [
-    { label: "Active bookings", value: active, href: "/bookings", hint: `${bookings.length} total` },
+    { label: "Active bookings", value: active, href: "/bookings",
+      hint: `${bookings.length} live${cancelledCount ? ` · ${cancelledCount} cancelled` : ""}` },
     { label: "Container lines", value: lines.length, href: "/suppliers", hint: `${fmt(totalNet)} kg net recorded` },
     { label: "Purchase orders", value: pos.length, href: "/purchase", hint: `${unlinkedPos} not yet linked to a booking` },
     { label: "Awaiting PO", value: needPo, href: "/bookings", tone: needPo ? "warn" : "good",

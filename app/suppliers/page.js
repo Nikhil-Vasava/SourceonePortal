@@ -9,6 +9,7 @@ import { extractPackingSlip, distributeContainers, hasAnyExtractionKey, extracti
 import { PageHeader, Empty } from "@/components/ui";
 import PackingSlipUpload from "@/components/PackingSlipUpload";
 import { IconCheck, IconAlert } from "@/components/icons";
+import { ACTIVE_BOOKING } from "@/lib/booking-scope";
 
 export const dynamic = "force-dynamic";
 
@@ -87,6 +88,7 @@ export default async function Suppliers({ searchParams }) {
   requireUser();
   const [bookings, suppliers] = await Promise.all([
     prisma.booking.findMany({
+      where: ACTIVE_BOOKING,
       include: {
         lines: { orderBy: { lineNo: "asc" }, include: { supplier: true, product: true, po: true } },
       },

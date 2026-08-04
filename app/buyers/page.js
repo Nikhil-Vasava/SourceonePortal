@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { fdate, fmt } from "@/lib/util";
 import { PageHeader, Empty, Table } from "@/components/ui";
+import { ACTIVE_BOOKING } from "@/lib/booking-scope";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,7 @@ export default async function Buyers() {
   requireUser();
   const [bookings, buyers] = await Promise.all([
     prisma.booking.findMany({
+      where: ACTIVE_BOOKING,
       include: { buyer: true, lines: { orderBy: { lineNo: "asc" }, include: { buyer: true, product: true, supplier: true } } },
       orderBy: { id: "desc" },
     }),

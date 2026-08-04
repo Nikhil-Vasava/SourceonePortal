@@ -9,6 +9,7 @@ import { MarkDelivered, UndoDelivered, SetDeparture } from "@/components/Deliver
 import { markDeliveredAction, undoDeliveredAction, setDepartureAction } from "@/lib/actions-delivery";
 import { bookingClocks, severity, needsFollowUp } from "@/lib/sla";
 import { IconAlert, IconCheck, IconShip } from "@/components/icons";
+import { ACTIVE_BOOKING } from "@/lib/booking-scope";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,8 @@ export default async function Tracking({ searchParams }) {
 
   const [bookings, company] = await Promise.all([
     prisma.booking.findMany({
+      // A cancelled shipment has no delivery to chase — no clock should run on it.
+      where: ACTIVE_BOOKING,
       include: {
         shippingLine: true,
         lines: { select: { buyerAllocatedAt: true, buyer: { select: { name: true } } } },

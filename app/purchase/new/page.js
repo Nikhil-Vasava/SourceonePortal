@@ -5,6 +5,7 @@ import { getCompany } from "@/lib/company";
 import { PageHeader, Field } from "@/components/ui";
 import PoLinesEditor from "@/components/PoLinesEditor";
 import { createPoAction } from "@/lib/actions-po";
+import { ACTIVE_BOOKING } from "@/lib/booking-scope";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,7 @@ export default async function NewPo({ searchParams }) {
   const [suppliers, products, bookings, company] = await Promise.all([
     prisma.partner.findMany({ where: { type: { in: ["VENDOR", "BUYER"] }, active: true }, orderBy: { name: "asc" } }),
     prisma.product.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
-    prisma.booking.findMany({ orderBy: { id: "desc" } }),
+    prisma.booking.findMany({ where: ACTIVE_BOOKING, orderBy: { id: "desc" } }),
     getCompany(),
   ]);
 
