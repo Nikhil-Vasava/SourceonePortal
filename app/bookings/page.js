@@ -9,35 +9,74 @@ import LinkPoCell from "@/components/LinkPoCell";
 import { updateBookingAction } from "@/lib/actions-booking";
 import { linkPoAction, unlinkPoAction } from "@/lib/actions-po";
 import { IconUpload, IconPlus, IconCheck } from "@/components/icons";
+import TableToolbar from "@/components/TableToolbar";
+import SortHeader from "@/components/SortHeader";
+import { readTableQuery, sortRows, searchWhere, dateRangeWhere } from "@/lib/table-query";
 
 export const dynamic = "force-dynamic";
 
 // Matches the tracking sheet, column for column.
+// `key` is what the row sorts by; `dir` is the direction a first click uses —
+// text reads best A-Z, dates and counts newest/largest first.
 const COLS = [
-  { label: "Freight Forwarder", w: 150 },
-  { label: "Booking No.", w: 120, sticky: true },
-  { label: "Shipping Line", w: 130 },
-  { label: "Vessel Name", w: 140 },
-  { label: "Voyage No.", w: 80 },
-  { label: "Port of Loading", w: 110 },
-  { label: "Port of Destination", w: 120 },
-  { label: "Place of Delivery", w: 130 },
-  { label: "Price / Cont. (In USD)", w: 100, align: "right" },
-  { label: "Booked Cont.", w: 70, align: "center" },
-  { label: "Loaded Cont.", w: 70, align: "center" },
-  { label: "Other Cont. (If Cancel, mention WO/Charge or W/Charge)", w: 190 },
-  { label: "ERD", w: 90 },
-  { label: "Docs Cut Off", w: 90 },
-  { label: "Cargo Cut-Off", w: 90 },
-  { label: "SI Sent Date", w: 90 },
+  { label: "Freight Forwarder", w: 150, key: "forwarder", dir: "asc" },
+  { label: "Booking No.", w: 120, sticky: true, key: "number", dir: "asc" },
+  { label: "Shipping Line", w: 130, key: "line", dir: "asc" },
+  { label: "Vessel Name", w: 140, key: "vessel", dir: "asc" },
+  { label: "Voyage No.", w: 80, key: "voyage", dir: "asc" },
+  { label: "Port of Loading", w: 110, key: "pol", dir: "asc" },
+  { label: "Port of Destination", w: 120, key: "pod", dir: "asc" },
+  { label: "Place of Delivery", w: 130, key: "delivery", dir: "asc" },
+  { label: "Price / Cont. (In USD)", w: 100, align: "right", key: "price", dir: "desc" },
+  { label: "Booked Cont.", w: 70, align: "center", key: "booked", dir: "desc" },
+  { label: "Loaded Cont.", w: 70, align: "center", key: "loaded", dir: "desc" },
+  { label: "Other Cont. (If Cancel, mention WO/Charge or W/Charge)", w: 190, key: "other", dir: "asc" },
+  { label: "ERD", w: 90, key: "erd", dir: "desc" },
+  { label: "Docs Cut Off", w: 90, key: "docsCutOff", dir: "desc" },
+  { label: "Cargo Cut-Off", w: 90, key: "cargoCutOff", dir: "desc" },
+  { label: "SI Sent Date", w: 90, key: "siSentDate", dir: "desc" },
 ];
+
+// How each sort key reads a value off a booking row.
+const SORT_ACCESSORS = {
+  forwarder:   b => b.freightForwarder || b.forwarder?.name,
+  number:      b => b.number,
+  line:        b => b.shippingLine?.name,
+  vessel:      b => b.vessel,
+  voyage:      b => b.voyage,
+  pol:         b => b.pol,
+  pod:         b => b.pod,
+  delivery:    b => b.placeOfDelivery,
+  price:       b => b.pricePerContainer,
+  booked:      b => b.bookedContainers,
+  loaded:      b => b.loadedContainers,
+  other:       b => b.otherContainers,
+  erd:         b => b.erd,
+  docsCutOff:  b => b.docsCutOff,
+  cargoCutOff: b => b.cargoCutOff,
+  siSentDate:  b => b.siSentDate,
+  status:      b => b.status,
+};
 
 const dash = <span className="text-ink-300">—</span>;
 
 export default async function Bookings({ searchParams }) {
   requireUser();
-  const [bookings, allPosRaw] = await Promise.all([
+
+  // Newest first by default — most people are looking at what just came in.
+  const query = readTableQuery(searchParams, { defaultSort: "erd", defaultDir: "desc" });
+
+  const where = {
+    ...searchWhere(query.q, [
+      "number", "vessel", "voyage", "pol", "pod", "placeOfDelivery",
+      "freightForwarder", "commodity",
+    ]),
+    ...dateRangeWhere("erd", query.from, query.to),
+  };
+
+  const [bookings, allPosRaw, total] = await Promise.all([
     prisma.booking.findMany({
+      where,
       include: {
         shippingLine: true, forwarder: true, lines: true,
         purchaseOrders: { include: { partner: true } },
@@ -48,7 +87,12 @@ export default async function Bookings({ searchParams }) {
       include: { partner: true, lines: { include: { product: true } } },
       orderBy: { id: "desc" },
     }),
+    prisma.booking.count(),
   ]);
+
+  // Sorted here rather than in the query: several columns come off relations,
+  // and this keeps blanks at the bottom in both directions.
+  const rows = sortRows(bookings, SORT_ACCESSORS[query.sort] || SORT_ACCESSORS.erd, query.dir);
 
   const allPos = allPosRaw.map(p => ({
     id: p.id,
@@ -65,7 +109,7 @@ export default async function Bookings({ searchParams }) {
     <div>
       <PageHeader
         title="Bookings"
-        subtitle={`${bookings.length} shipment${bookings.length === 1 ? "" : "s"} · import carrier confirmations or add manually`}
+        subtitle={`${total} shipment${total === 1 ? "" : "s"} · import carrier confirmations or add manually`}
         action={<>
           <Link href="/bookings/import" className="btn"><IconUpload size={16} /> Import booking</Link>
           <Link href="/bookings/new" className="btn-secondary"><IconPlus size={16} /> Add booking</Link>
@@ -85,16 +129,29 @@ export default async function Bookings({ searchParams }) {
         </div>
       )}
 
-      {bookings.length === 0 ? (
+      {total > 0 && (
+        <TableToolbar
+          action="/bookings"
+          query={query}
+          searchPlaceholder="Booking no, vessel, voyage, port…"
+          dateLabel="ERD"
+          total={total}
+          shown={rows.length}
+        />
+      )}
+
+      {rows.length === 0 ? (
         <Empty
-          text="No bookings yet. Import a carrier booking PDF — Maersk, MSC and ONE are read automatically."
+          text={total === 0
+            ? "No bookings yet. Import a carrier booking PDF — Maersk, MSC and ONE are read automatically."
+            : "No bookings match those filters."}
           action={<Link href="/bookings/import" className="btn"><IconUpload size={16} /> Import booking</Link>}
         />
       ) : (
         <>
         {/* Phone: one card per booking. The 16-column grid is unusable at this width. */}
         <div className="space-y-3 lg:hidden">
-          {bookings.map(b => (
+          {rows.map(b => (
             <BookingCard key={b.id} booking={plain(b)}>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <LinkPoCell
@@ -119,15 +176,26 @@ export default async function Bookings({ searchParams }) {
               <thead>
                 <tr>
                   {COLS.map(c => (
-                    <th key={c.label}
-                        style={{ minWidth: c.w }}
-                        className={`sticky top-0 z-20 border-b border-r border-ink-200 bg-sticky px-2.5 py-2.5
-                                   text-left text-2xs font-semibold uppercase leading-tight tracking-wide text-ink-400
-                                   ${c.sticky ? "left-0 z-30 frozen-edge" : ""}`}>
-                      {c.label}
-                    </th>
+                    <SortHeader
+                      key={c.label}
+                      column={c.key}
+                      label={c.label}
+                      query={query}
+                      basePath="/bookings"
+                      naturalDir={c.dir}
+                      align={c.align}
+                      style={{ minWidth: c.w }}
+                      className={`sticky top-0 z-20 border-b border-r border-ink-200 bg-sticky px-2.5 py-2.5
+                                 text-left text-2xs font-semibold uppercase leading-tight tracking-wide text-ink-400
+                                 ${c.sticky ? "left-0 z-30 frozen-edge" : ""}`}
+                    />
                   ))}
-                  {["Status", "Purchase Order", ""].map(h => (
+                  <SortHeader
+                    column="status" label="Status" query={query} basePath="/bookings" naturalDir="asc"
+                    className="sticky top-0 z-20 border-b border-r border-ink-200 bg-sticky px-2.5 py-2.5
+                               text-left text-2xs font-semibold uppercase tracking-wide text-ink-400"
+                  />
+                  {["Purchase Order", ""].map(h => (
                     <th key={h} className="sticky top-0 z-20 border-b border-r border-ink-200 bg-sticky px-2.5 py-2.5
                                            text-left text-2xs font-semibold uppercase tracking-wide text-ink-400">
                       {h}
@@ -136,7 +204,7 @@ export default async function Bookings({ searchParams }) {
                 </tr>
               </thead>
               <tbody>
-                {bookings.map(b => (
+                {rows.map(b => (
                   <tr key={b.id} className="group row">
                     <td className={td}>{b.freightForwarder || b.forwarder?.name || dash}</td>
                     <td className={`${td} frozen-cell frozen-edge left-0 z-10 font-semibold`}>
@@ -184,7 +252,7 @@ export default async function Bookings({ searchParams }) {
         </>
       )}
 
-      {bookings.length > 0 && (
+      {rows.length > 0 && (
         <p className="mt-3 text-2xs text-ink-400">
           <span className="hidden lg:inline">
             Scroll sideways for all 16 columns — the booking number stays pinned.{" "}

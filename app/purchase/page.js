@@ -4,17 +4,62 @@ import { requireUser } from "@/lib/auth";
 import { fdate, fmt } from "@/lib/util";
 import { PageHeader, Empty, Badge } from "@/components/ui";
 import { deletePoAction } from "@/lib/actions-po";
+import TableToolbar from "@/components/TableToolbar";
+import SortHeader from "@/components/SortHeader";
+import { readTableQuery, sortRows, searchWhere, dateRangeWhere } from "@/lib/table-query";
+
+// `key` sorts the row; `dir` is the direction the first click uses.
+const COLS = [
+  { label: "P.O. No.", key: "number", dir: "asc" },
+  { label: "Date", key: "date", dir: "desc" },
+  { label: "Supplier", key: "supplier", dir: "asc" },
+  { label: "Products", key: "products", dir: "asc" },
+  { label: "Qty", key: "qty", dir: "desc" },
+  { label: "Value", key: "value", dir: "desc" },
+  { label: "Pricing", key: "pricing", dir: "asc" },
+  { label: "Linked Booking", key: "booking", dir: "asc" },
+  { label: "Source", key: "source", dir: "asc" },
+  { label: "Status", key: "status", dir: "asc" },
+];
+
+const lineTotal = (po) => po.lines.reduce((s, l) => s + l.qty * l.price, 0);
+
+const SORT_ACCESSORS = {
+  number:   po => po.number,
+  date:     po => po.orderDate,
+  supplier: po => po.partner?.name,
+  products: po => po.lines.map(l => l.product?.name).filter(Boolean).join(", "),
+  qty:      po => po.lines.reduce((s, l) => s + (l.qty || 0), 0),
+  value:    po => lineTotal(po),
+  pricing:  po => po.shippingTerms,
+  booking:  po => po.fromBooking?.number,
+  source:   po => (po.sourceFile ? "imported" : "manual"),
+  status:   po => po.status,
+};
 
 export const dynamic = "force-dynamic";
 
 export default async function Purchase({ searchParams }) {
   requireUser();
-  const pos = await prisma.purchaseOrder.findMany({
-    include: { partner: true, lines: { include: { product: true } }, fromBooking: true },
-    orderBy: { id: "desc" },
-  });
 
-  const total = (po) => po.lines.reduce((s, l) => s + l.qty * l.price, 0);
+  const query = readTableQuery(searchParams, { defaultSort: "date", defaultDir: "desc" });
+
+  const where = {
+    ...searchWhere(query.q, ["number", "shippingTerms", "partner.name"]),
+    ...dateRangeWhere("orderDate", query.from, query.to),
+  };
+
+  const [posRaw, count] = await Promise.all([
+    prisma.purchaseOrder.findMany({
+      where,
+      include: { partner: true, lines: { include: { product: true } }, fromBooking: true },
+      orderBy: { id: "desc" },
+    }),
+    prisma.purchaseOrder.count(),
+  ]);
+
+  const pos = sortRows(posRaw, SORT_ACCESSORS[query.sort] || SORT_ACCESSORS.date, query.dir);
+  const total = lineTotal;
 
   return (
     <div>
@@ -40,13 +85,30 @@ export default async function Purchase({ searchParams }) {
         </div>
       )}
 
+      {count > 0 && (
+        <TableToolbar
+          action="/purchase"
+          query={query}
+          searchPlaceholder="PO number, supplier, pricing…"
+          dateLabel="PO date"
+          total={count}
+          shown={pos.length}
+        />
+      )}
+
       {pos.length === 0 ? (
-        <Empty text="No purchase orders yet — import an existing PO or click Generate PO to create one" />
+        <Empty text={count === 0
+          ? "No purchase orders yet — import an existing PO or click Generate PO to create one"
+          : "No purchase orders match those filters."} />
       ) : (
         <div className="card overflow-x-auto p-0">
           <table className="min-w-full divide-y divide-ink-200">
             <thead className="bg-sticky"><tr>
-              {["P.O. No.", "Date", "Supplier", "Products", "Qty", "Value", "Pricing", "Linked Booking", "Source", "Status", "PDF", ""].map(h => <th key={h} className="th">{h}</th>)}
+              {COLS.map(c => (
+                <SortHeader key={c.key} column={c.key} label={c.label} query={query}
+                            basePath="/purchase" naturalDir={c.dir} className="th" />
+              ))}
+              {["PDF", ""].map(h => <th key={h} className="th">{h}</th>)}
             </tr></thead>
             <tbody className="divide-y divide-ink-100">
               {pos.map(po => (
