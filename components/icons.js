@@ -57,6 +57,12 @@ export const IconUpload = (p) => (
   <path d="M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16" /></Svg>
 );
 
+// The upload arrow, flipped — same tray, arrow pointing into it.
+export const IconDownload = (p) => (
+  <Svg {...p}><path d="M12 4v12" /><path d="m7.5 11.5 4.5 4.5 4.5-4.5" />
+  <path d="M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16" /></Svg>
+);
+
 export const IconPlus = (p) => (<Svg {...p}><path d="M12 5v14M5 12h14" /></Svg>);
 
 export const IconDoc = (p) => (

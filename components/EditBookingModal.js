@@ -51,6 +51,7 @@ export default function EditBookingModal({ booking, action }) {
               <div><span className="label">Docs Cut Off</span><input name="docsCutOff" type="date" defaultValue={d(b.docsCutOff)} className="input" /></div>
               <div><span className="label">Cargo Cut-Off</span><input name="cargoCutOff" type="date" defaultValue={d(b.cargoCutOff)} className="input" /></div>
               <div><span className="label">Container Type</span><input name="containerType" defaultValue={b.containerType || ""} className="input" /></div>
+              <div className="col-span-2"><span className="label">Empty Depot</span><input name="emptyDepot" defaultValue={b.emptyDepot || ""} placeholder="e.g. 41 Chapmans Rd, Woolston" className="input" /></div>
 
               <div><span className="label">ETD</span><input name="etd" type="date" defaultValue={d(b.etd)} className="input" /></div>
               <div><span className="label">ETA</span><input name="eta" type="date" defaultValue={d(b.eta)} className="input" /></div>

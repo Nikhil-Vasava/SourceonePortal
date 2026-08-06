@@ -16,6 +16,8 @@ export default function TableToolbar({
   searchPlaceholder = "Search…",
   dateLabel = "ERD",
   showDates = true,
+  sortable = true,          // the grouped panel views have no sortable headings
+  unit = "row",
   total,
   shown,
   children,
@@ -77,8 +79,8 @@ export default function TableToolbar({
         <p className="mt-2 text-2xs text-ink-400">
           {filtered
             ? <>Showing <b className="text-ink-600">{shown}</b> of {total}</>
-            : <>{total} row{total === 1 ? "" : "s"}</>}
-          {" · click any column heading to sort"}
+            : <>{total} {unit}{total === 1 ? "" : "s"}</>}
+          {sortable && " · click any column heading to sort"}
         </p>
       )}
     </form>

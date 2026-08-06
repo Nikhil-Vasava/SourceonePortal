@@ -25,6 +25,9 @@ module.exports = {
       ],
       // The PO route reads both the fonts and the logo off disk at request time.
       "/api/po/[id]": ["./public/fonts/**", "./public/logo-mark-blue-512.png"],
+      // The shipment export does the same for its letterhead — the PDF needs
+      // the fonts, both formats need the logo.
+      "/api/export/bookings": ["./public/fonts/**", "./public/logo-mark-blue-512.png"],
     },
 
     // Documents are posted to server actions; the 1 MB default is too small for

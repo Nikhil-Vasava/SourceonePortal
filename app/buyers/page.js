@@ -5,6 +5,8 @@ import { requireUser } from "@/lib/auth";
 import { fdate, fmt } from "@/lib/util";
 import { PageHeader, Empty, Table } from "@/components/ui";
 import { ACTIVE_BOOKING } from "@/lib/booking-scope";
+import TableToolbar from "@/components/TableToolbar";
+import { readTableQuery, matchesText } from "@/lib/table-query";
 
 export const dynamic = "force-dynamic";
 
@@ -32,9 +34,11 @@ async function allocateBooking(formData) {
   revalidatePath("/buyers");
 }
 
-export default async function Buyers() {
+export default async function Buyers({ searchParams }) {
   requireUser();
-  const [bookings, buyers] = await Promise.all([
+  const query = readTableQuery(searchParams);
+
+  const [allBookings, buyers] = await Promise.all([
     prisma.booking.findMany({
       where: ACTIVE_BOOKING,
       include: { buyer: true, lines: { orderBy: { lineNo: "asc" }, include: { buyer: true, product: true, supplier: true } } },
@@ -42,6 +46,15 @@ export default async function Buyers() {
     }),
     prisma.partner.findMany({ where: { type: { in: ["CUSTOMER", "BUYER"] }, active: true }, orderBy: { name: "asc" } }),
   ]);
+
+  // A shipment stays if it matches, or if any line inside it does — searching a
+  // buyer name should surface the shipments allocated to them.
+  const bookings = allBookings.filter(b => matchesText(query.q, [
+    b.number, b.vessel, b.voyage, b.pol, b.pod, b.placeOfDelivery, b.buyer?.name,
+    ...b.lines.flatMap(l => [
+      l.containerNo, l.buyer?.name, l.supplier?.name, l.product?.name, l.description, l.saleTerms,
+    ]),
+  ]));
 
   const allLines = bookings.flatMap(b => b.lines);
   const allocated = allLines.filter(l => l.buyerId).length;
@@ -56,7 +69,29 @@ export default async function Buyers() {
         </div>
       )}
 
-      {bookings.length === 0 ? <Empty text="No shipments yet — create a booking first" /> : (
+      {allBookings.length > 0 && (
+        <TableToolbar
+          action="/buyers"
+          query={query}
+          searchPlaceholder="Booking no, container, buyer, product, terms…"
+          showDates={false}
+          sortable={false}
+          unit="shipment"
+          total={allBookings.length}
+          shown={bookings.length}
+        />
+      )}
+
+      {bookings.length === 0 ? (
+        <Empty
+          text={allBookings.length === 0
+            ? "No shipments yet — create a booking first"
+            : "No shipments match that search."}
+          action={allBookings.length > 0
+            ? <Link href="/buyers" className="btn-secondary">Clear search</Link>
+            : undefined}
+        />
+      ) : (
         <>
           <div className="mb-4 text-sm text-ink-500">{allocated} of {allLines.length} container lines allocated to a buyer</div>
 

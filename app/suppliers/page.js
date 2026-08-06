@@ -10,6 +10,8 @@ import { PageHeader, Empty } from "@/components/ui";
 import PackingSlipUpload from "@/components/PackingSlipUpload";
 import { IconCheck, IconAlert } from "@/components/icons";
 import { ACTIVE_BOOKING } from "@/lib/booking-scope";
+import TableToolbar from "@/components/TableToolbar";
+import { readTableQuery, matchesText } from "@/lib/table-query";
 
 export const dynamic = "force-dynamic";
 
@@ -97,7 +99,19 @@ export default async function Suppliers({ searchParams }) {
     prisma.partner.findMany({ where: { type: { in: ["VENDOR", "BUYER"] }, active: true }, orderBy: { name: "asc" } }),
   ]);
 
-  const withLines = bookings.filter(b => b.lines.length);
+  const query = readTableQuery(searchParams);
+
+  const all = bookings.filter(b => b.lines.length);
+
+  // A panel stays if the booking matches, or if any container inside it does —
+  // searching a container number should surface the shipment it belongs to.
+  const withLines = all.filter(b => matchesText(query.q, [
+    b.number, b.vessel, b.voyage, b.pol, b.pod, b.placeOfDelivery,
+    ...b.lines.flatMap(l => [
+      l.containerNo, l.sealNo, l.supplier?.name, l.product?.name, l.description, l.po?.number,
+    ]),
+  ]));
+
   const allLines = withLines.flatMap(b => b.lines);
   const withSlip = allLines.filter(l => l.packingSlipFile).length;
 
@@ -137,9 +151,28 @@ export default async function Suppliers({ searchParams }) {
         </div>
       )}
 
+      {all.length > 0 && (
+        <TableToolbar
+          action="/suppliers"
+          query={query}
+          searchPlaceholder="Booking no, container, seal, supplier, product…"
+          showDates={false}
+          sortable={false}
+          unit="shipment"
+          total={all.length}
+          shown={withLines.length}
+        />
+      )}
+
       {withLines.length === 0 ? (
-        <Empty text="No container lines yet — create a booking first"
-               action={<Link href="/bookings/import" className="btn">Import a booking</Link>} />
+        <Empty
+          text={all.length === 0
+            ? "No container lines yet — create a booking first"
+            : "No shipments match that search."}
+          action={all.length === 0
+            ? <Link href="/bookings/import" className="btn">Import a booking</Link>
+            : <Link href="/suppliers" className="btn-secondary">Clear search</Link>}
+        />
       ) : (
         <>
           <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-500">

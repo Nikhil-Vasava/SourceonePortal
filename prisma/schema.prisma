@@ -243,6 +243,10 @@ model Booking {
   containerType    String?   // e.g. 40 DRY HC
   commodity        String?
   serviceContract  String?
+  // Where empty containers are collected from. Carrier documents rarely state
+  // it in a parseable way, so it's usually typed in — but it's on the shipment
+  // export the depot and transport company need.
+  emptyDepot       String?
 
   // ===== Delivery SLA =====
   // The carrier clock runs from when the vessel actually sailed. `etd` is the

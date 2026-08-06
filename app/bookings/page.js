@@ -8,9 +8,10 @@ import BookingCard from "@/components/BookingCard";
 import LinkPoCell from "@/components/LinkPoCell";
 import { updateBookingAction } from "@/lib/actions-booking";
 import { linkPoAction, unlinkPoAction } from "@/lib/actions-po";
-import { IconUpload, IconPlus, IconCheck } from "@/components/icons";
+import { IconUpload, IconPlus, IconCheck, IconAlert } from "@/components/icons";
 import TableToolbar from "@/components/TableToolbar";
 import SortHeader from "@/components/SortHeader";
+import { SelectionProvider, SelectRow, SelectAll, ExportButtons } from "@/components/TableSelection";
 import { readTableQuery, sortRows, searchWhere, dateRangeWhere } from "@/lib/table-query";
 
 export const dynamic = "force-dynamic";
@@ -129,6 +130,13 @@ export default async function Bookings({ searchParams }) {
         </div>
       )}
 
+      {searchParams?.error && (
+        <div className="alert-warn mb-5">
+          <IconAlert size={18} className="mt-0.5 shrink-0" />
+          <div>{searchParams.error}</div>
+        </div>
+      )}
+
       {total > 0 && (
         <TableToolbar
           action="/bookings"
@@ -148,12 +156,19 @@ export default async function Bookings({ searchParams }) {
           action={<Link href="/bookings/import" className="btn"><IconUpload size={16} /> Import booking</Link>}
         />
       ) : (
-        <>
+        <SelectionProvider ids={rows.map(b => b.id)}>
+        {/* Tick rows to export just those; with nothing ticked the buttons take
+            everything currently filtered. */}
+        <div className="mb-3 flex items-center justify-end">
+          <ExportButtons query={query} />
+        </div>
+
         {/* Phone: one card per booking. The 16-column grid is unusable at this width. */}
         <div className="space-y-3 lg:hidden">
           {rows.map(b => (
             <BookingCard key={b.id} booking={plain(b)}>
               <div className="flex flex-wrap items-center justify-between gap-2">
+                <SelectRow id={b.id} label={b.number} />
                 <LinkPoCell
                   booking={plain({
                     id: b.id,
@@ -175,6 +190,9 @@ export default async function Bookings({ searchParams }) {
             <table className="min-w-full border-separate border-spacing-0 text-xs">
               <thead>
                 <tr>
+                  <th className="sticky left-0 top-0 z-30 w-9 border-b border-r border-ink-200 bg-sticky px-0 py-2.5 text-center">
+                    <SelectAll />
+                  </th>
                   {COLS.map(c => (
                     <SortHeader
                       key={c.label}
@@ -187,7 +205,7 @@ export default async function Bookings({ searchParams }) {
                       style={{ minWidth: c.w }}
                       className={`sticky top-0 z-20 border-b border-r border-ink-200 bg-sticky px-2.5 py-2.5
                                  text-left text-2xs font-semibold uppercase leading-tight tracking-wide text-ink-400
-                                 ${c.sticky ? "left-0 z-30 frozen-edge" : ""}`}
+                                 ${c.sticky ? "left-9 z-30 frozen-edge" : ""}`}
                     />
                   ))}
                   <SortHeader
@@ -206,8 +224,11 @@ export default async function Bookings({ searchParams }) {
               <tbody>
                 {rows.map(b => (
                   <tr key={b.id} className="group row">
+                    <td className={`${td} frozen-cell sticky left-0 z-10 w-9 px-0 text-center`}>
+                      <SelectRow id={b.id} label={b.number} />
+                    </td>
                     <td className={td}>{b.freightForwarder || b.forwarder?.name || dash}</td>
-                    <td className={`${td} frozen-cell frozen-edge left-0 z-10 font-semibold`}>
+                    <td className={`${td} frozen-cell frozen-edge left-9 z-10 font-semibold`}>
                       <Link href={`/bookings/${b.id}`} className="text-brand-600 hover:text-brand-400 hover:underline">
                         {b.number}
                       </Link>
@@ -249,7 +270,7 @@ export default async function Bookings({ searchParams }) {
             </table>
           </div>
         </div>
-        </>
+        </SelectionProvider>
       )}
 
       {rows.length > 0 && (
