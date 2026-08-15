@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { IconUpload, IconAlert } from "@/components/icons";
 import Portal from "@/components/Portal";
 import { useModalForm } from "@/lib/use-modal-form";
+import { acceptFor } from "@/lib/upload-types";
 
 /**
  * One packing slip per booking — the supplier sends a single document
@@ -57,7 +58,7 @@ export default function PackingSlipUpload({ booking, action }) {
               <input type="hidden" name="bookingId" value={id} />
               <input
                 type="file" name="file" required
-                accept=".pdf,.png,.jpg,.jpeg,.webp,.heic,.docx"
+                accept={acceptFor("packingSlip")}
                 className="input file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-brand-950 hover:file:bg-brand-400"
               />
               <p className="mt-2 text-2xs text-ink-400">

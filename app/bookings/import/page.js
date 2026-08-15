@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { readBookingDocument, createBookingFromExtract } from "@/lib/booking-import";
 import { hasGeminiKey } from "@/lib/gemini";
+import { acceptFor } from "@/lib/upload-types";
 import { PageHeader } from "@/components/ui";
 import { IconAlert } from "@/components/icons";
 
@@ -81,7 +82,7 @@ export default function ImportBooking({ searchParams }) {
         <span className="label">Booking confirmation(s)</span>
         <input
           type="file" name="file" multiple required
-          accept=".pdf,.png,.jpg,.jpeg,.webp,.heic"
+          accept={acceptFor("booking")}
           className="input file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-brand-950 hover:file:bg-brand-400"
         />
 
