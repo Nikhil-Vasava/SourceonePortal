@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
-import { fdate, fmt } from "@/lib/util";
+import { fdate } from "@/lib/util";
 import { PageHeader, Empty, Badge } from "@/components/ui";
 import { deletePoAction } from "@/lib/actions-po";
 import TableToolbar from "@/components/TableToolbar";
 import SortHeader from "@/components/SortHeader";
+import PoValue from "@/components/PoValue";
 import { readTableQuery, sortRows, searchWhere, dateRangeWhere } from "@/lib/table-query";
+import { valueSortKey } from "@/lib/po-value";
 
 // `key` sorts the row; `dir` is the direction the first click uses.
 const COLS = [
@@ -22,15 +24,13 @@ const COLS = [
   { label: "Status", key: "status", dir: "asc" },
 ];
 
-const lineTotal = (po) => po.lines.reduce((s, l) => s + l.qty * l.price, 0);
-
 const SORT_ACCESSORS = {
   number:   po => po.number,
   date:     po => po.orderDate,
   supplier: po => po.partner?.name,
   products: po => po.lines.map(l => l.product?.name).filter(Boolean).join(", "),
   qty:      po => po.lines.reduce((s, l) => s + (l.qty || 0), 0),
-  value:    po => lineTotal(po),
+  value:    po => valueSortKey(po.lines),
   pricing:  po => po.shippingTerms,
   booking:  po => po.fromBooking?.number,
   source:   po => (po.sourceFile ? "imported" : "manual"),
@@ -59,7 +59,6 @@ export default async function Purchase({ searchParams }) {
   ]);
 
   const pos = sortRows(posRaw, SORT_ACCESSORS[query.sort] || SORT_ACCESSORS.date, query.dir);
-  const total = lineTotal;
 
   return (
     <div>
@@ -122,7 +121,7 @@ export default async function Purchase({ searchParams }) {
                   <td className="td whitespace-nowrap">
                     {po.lines.map(l => <div key={l.id}>{l.qty} {l.uom}</div>)}
                   </td>
-                  <td className="td whitespace-nowrap font-medium">{fmt(total(po), po.currency)}</td>
+                  <td className="td whitespace-nowrap"><PoValue po={po} /></td>
                   <td className="td">{po.shippingTerms || "—"}</td>
                   <td className="td">
                     {po.fromBooking

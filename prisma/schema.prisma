@@ -187,6 +187,11 @@ model PurchaseOrderLine {
   uom       String  @default("KG")
   grade     String?
   price     Float
+  // What the price is per — "MT", "KG", "Load", "Cont." Deliberately separate
+  // from `uom`: a line is routinely ordered by the container but priced by the
+  // tonne, and without this the two can't be told apart, which makes any
+  // qty x price total meaningless.
+  priceUnit String? @default("MT")
   taxRate   Float   @default(0)
   containerId Int?
   container   Container? @relation(fields: [containerId], references: [id])
