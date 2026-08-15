@@ -1,17 +1,8 @@
 "use client";
-import { useState } from "react";
-import { useFormStatus } from "react-dom";
-import { IconUpload } from "@/components/icons";
+import { useCallback, useState } from "react";
+import { IconUpload, IconAlert } from "@/components/icons";
 import Portal from "@/components/Portal";
-
-function SubmitBtn({ done }) {
-  const { pending } = useFormStatus();
-  return (
-    <button disabled={pending} className="btn">
-      {pending ? "Reading…" : done ? "Replace slip" : "Read slip"}
-    </button>
-  );
-}
+import { useModalForm } from "@/lib/use-modal-form";
 
 /**
  * One packing slip per booking — the supplier sends a single document
@@ -22,6 +13,11 @@ export default function PackingSlipUpload({ booking, action }) {
   const { id, number, lineCount, filled, slipFile } = booking;
   const done = filled > 0;
 
+  const close = useCallback(() => setOpen(false), []);
+  // No toast here: this action redirects with its own result banner, which
+  // reports how many containers were filled — more useful than "saved".
+  const { formRef, busy, error, submit } = useModalForm(action, { onSuccess: close });
+
   return (
     <>
       <button onClick={() => setOpen(true)} className={`${done ? "btn-secondary" : "btn"} btn-sm`}>
@@ -31,8 +27,9 @@ export default function PackingSlipUpload({ booking, action }) {
 
       {open && (
         <Portal>
-        <div className="overlay items-center" onClick={() => setOpen(false)}>
-          <div className="modal max-w-lg" onClick={e => e.stopPropagation()}>
+        <div className="overlay items-center" onClick={() => !busy && close()}>
+          <div className="modal max-w-lg" onClick={e => e.stopPropagation()}
+               role="dialog" aria-modal="true" aria-label={`Packing slip for ${number}`}>
             <h3 className="text-lg font-semibold tracking-tight text-ink-900">
               Packing slip · {number}
             </h3>
@@ -49,7 +46,14 @@ export default function PackingSlipUpload({ booking, action }) {
               </div>
             )}
 
-            <form action={action}>
+            {error && (
+              <div className="alert-error mb-4">
+                <IconAlert size={18} className="mt-0.5 shrink-0" />
+                <div>{error}</div>
+              </div>
+            )}
+
+            <form ref={formRef} onSubmit={submit}>
               <input type="hidden" name="bookingId" value={id} />
               <input
                 type="file" name="file" required
@@ -62,8 +66,10 @@ export default function PackingSlipUpload({ booking, action }) {
               </p>
 
               <div className="mt-5 flex justify-end gap-2">
-                <button type="button" onClick={() => setOpen(false)} className="btn-secondary">Cancel</button>
-                <SubmitBtn done={done} />
+                <button type="button" onClick={close} disabled={busy} className="btn-secondary">Cancel</button>
+                <button type="submit" disabled={busy} className="btn disabled:opacity-60">
+                  {busy ? "Reading…" : done ? "Replace slip" : "Read slip"}
+                </button>
               </div>
             </form>
           </div>

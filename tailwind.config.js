@@ -129,11 +129,18 @@ module.exports = {
           from: { opacity: "0", transform: "scale(0.97)" },
           to:   { opacity: "1", transform: "scale(1)" },
         },
+        // Rises from just below where it lands — movement in the direction it
+        // came from, so the eye catches it without the motion being showy.
+        "toast-in": {
+          from: { opacity: "0", transform: "translateY(8px)" },
+          to:   { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "fade-in":  "fade-in 140ms cubic-bezier(0.23, 1, 0.32, 1)",
         "pop-in":   "pop-in 160ms cubic-bezier(0.23, 1, 0.32, 1)",
         "scale-in": "scale-in 200ms cubic-bezier(0.23, 1, 0.32, 1)",
+        "toast-in": "toast-in 220ms cubic-bezier(0.23, 1, 0.32, 1)",
       },
     },
   },

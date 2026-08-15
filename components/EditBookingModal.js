@@ -1,27 +1,55 @@
 "use client";
-import { useState } from "react";
-import { IconPencil } from "@/components/icons";
+import { useCallback, useEffect, useState } from "react";
+import { IconPencil, IconAlert } from "@/components/icons";
 import Portal from "@/components/Portal";
+import Toast from "@/components/Toast";
+import { useModalForm } from "@/lib/use-modal-form";
 
 const d = (v) => (v ? String(v).slice(0, 10) : "");
 
 export default function EditBookingModal({ booking, action }) {
   const [open, setOpen] = useState(false);
   const b = booking;
+
+  const close = useCallback(() => setOpen(false), []);
+  const { formRef, busy, error, toast, clearToast, submit } = useModalForm(action, {
+    onSuccess: close,
+    successMessage: `Booking ${b.number} saved.`,
+  });
+
+  // Escape closes, but not mid-save — that would hide the form while the
+  // request is still in flight and leave no way to see it fail.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => { if (e.key === "Escape" && !busy) close(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, busy, close]);
+
   return (
     <>
       <button onClick={() => setOpen(true)} className="icon-btn" title="Edit booking" aria-label="Edit booking">
         <IconPencil size={16} />
       </button>
 
+      <Toast message={toast?.message} kind={toast?.kind} onDone={clearToast} />
+
       {open && (
         <Portal>
-        <div className="overlay" onClick={() => setOpen(false)}>
-          <div className="modal max-w-3xl" onClick={e => e.stopPropagation()}>
+        <div className="overlay" onClick={() => !busy && close()}>
+          <div className="modal max-w-3xl" onClick={e => e.stopPropagation()}
+               role="dialog" aria-modal="true" aria-label={`Edit booking ${b.number}`}>
             <h3 className="text-lg font-semibold tracking-tight text-ink-900">Edit booking {b.number}</h3>
             <p className="mb-5 mt-1 text-sm text-ink-500">Fill in the columns carriers don't provide, or correct anything the reader got wrong.</p>
 
-            <form action={action} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {error && (
+              <div className="alert-error mb-4">
+                <IconAlert size={18} className="mt-0.5 shrink-0" />
+                <div>{error}</div>
+              </div>
+            )}
+
+            <form ref={formRef} onSubmit={submit} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <input type="hidden" name="id" value={b.id} />
 
               <div><span className="label">Freight Forwarder</span><input name="freightForwarder" defaultValue={b.freightForwarder || ""} className="input" /></div>
@@ -64,8 +92,10 @@ export default function EditBookingModal({ booking, action }) {
               </div>
 
               <div className="col-span-4 mt-4 flex justify-end gap-2 border-t border-ink-200 pt-4">
-                <button type="button" onClick={() => setOpen(false)} className="btn-secondary">Cancel</button>
-                <button className="btn">Save Booking</button>
+                <button type="button" onClick={close} disabled={busy} className="btn-secondary">Cancel</button>
+                <button type="submit" disabled={busy} className="btn disabled:opacity-60">
+                  {busy ? "Saving…" : "Save Booking"}
+                </button>
               </div>
             </form>
           </div>
