@@ -89,7 +89,7 @@ export function SelectAll() {
  * With rows ticked, exports exactly those. With none ticked, exports the whole
  * filtered view — which is what "filter, then export" is meant to do.
  */
-export function ExportButtons({ query, endpoint = "/api/export/bookings" }) {
+export function ExportButtons({ query, matching, endpoint = "/api/export/bookings" }) {
   const { selected } = useSelection();
   const [busy, setBusy] = useState(null);
 
@@ -120,8 +120,13 @@ export function ExportButtons({ query, endpoint = "/api/export/bookings" }) {
     setTimeout(() => { form.remove(); setBusy(null); }, 1200);
   }
 
+  // With nothing ticked the export takes every row matching the current
+  // filters, not just the page on screen — so say how many that is rather than
+  // "all shown", which would read as the 25 rows currently visible.
   const n = selected.size;
-  const what = n ? `${n} selected` : "all shown";
+  const what = n
+    ? `${n} selected`
+    : matching != null ? `all ${matching}` : "all shown";
 
   return (
     <div className="flex items-center gap-2">

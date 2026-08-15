@@ -11,6 +11,8 @@ import PackingSlipUpload from "@/components/PackingSlipUpload";
 import { IconCheck, IconAlert } from "@/components/icons";
 import { ACTIVE_BOOKING } from "@/lib/booking-scope";
 import TableToolbar from "@/components/TableToolbar";
+import ShipmentPanel from "@/components/ShipmentPanel";
+import WorkSection from "@/components/WorkSection";
 import { readTableQuery, matchesText } from "@/lib/table-query";
 
 export const dynamic = "force-dynamic";
@@ -115,6 +117,105 @@ export default async function Suppliers({ searchParams }) {
   const allLines = withLines.flatMap(b => b.lines);
   const withSlip = allLines.filter(l => l.packingSlipFile).length;
 
+  // The split that drives the page: a shipment is done when every container on
+  // it has slip details. Anything short of that is still work.
+  const isComplete = (b) => b.lines.every(l => l.packingSlipFile);
+  const pending = withLines.filter(b => !isComplete(b));
+  const complete = withLines.filter(isComplete);
+
+  const countNote = (list) => {
+    const c = list.reduce((s, b) => s + b.lines.length, 0);
+    return `${list.length} shipment${list.length === 1 ? "" : "s"} · ${c} container${c === 1 ? "" : "s"}`;
+  };
+
+  // One panel, rendered for both sections. Open on arrival only when there's
+  // something left to do inside it.
+  const panel = (b, open) => {
+    const filled = b.lines.filter(l => l.packingSlipFile).length;
+    const slipFile = b.lines.find(l => l.packingSlipFile)?.packingSlipFile || null;
+    const supplierIds = [...new Set(b.lines.map(l => l.supplierId).filter(Boolean))];
+    const commonSupplier = supplierIds.length === 1 ? supplierIds[0] : "";
+
+    return (
+      <ShipmentPanel
+        key={b.id}
+        defaultOpen={open}
+        summary={`${b.lines.length} container${b.lines.length === 1 ? "" : "s"} — show details`}
+        header={
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <Link href={`/bookings/${b.id}`} className="font-semibold text-brand-700 hover:underline">
+              {b.number}
+            </Link>
+            <span className="text-xs text-ink-500">
+              {b.pol || "?"} → {b.pod || "?"} · {b.lines.length} container{b.lines.length === 1 ? "" : "s"}
+            </span>
+            <span className={`badge ${filled === b.lines.length ? "bg-emerald-50 text-emerald-700" : "bg-ink-100 text-ink-600"}`}>
+              {filled}/{b.lines.length} filled
+            </span>
+            {slipFile && (
+              <span className="max-w-full truncate text-2xs text-ink-400 sm:max-w-[16rem]" title={slipFile}>{slipFile}</span>
+            )}
+          </div>
+        }
+        actions={
+          <>
+            <form action={reassignBooking} className="flex items-center gap-1.5">
+              <input type="hidden" name="bookingId" value={b.id} />
+              <span className="shrink-0 text-2xs text-ink-400">Supplier</span>
+              <select name="supplierId" defaultValue={commonSupplier} className="input input-sm w-full min-w-0 sm:w-44">
+                <option value="">— not allocated —</option>
+                {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+              <button className="btn-secondary btn-sm shrink-0">Apply to all</button>
+            </form>
+
+            <PackingSlipUpload
+              booking={{ id: b.id, number: b.number, lineCount: b.lines.length, filled, slipFile }}
+              action={uploadPackingSlip}
+            />
+          </>
+        }
+      >
+        <table className="min-w-full">
+          <thead className="border-b border-ink-200">
+            <tr>{["#", "Supplier", "Product", "Container", "Seal", "Packages", "Net (kg)", "Gross (kg)", "Packed", "PO"]
+              .map(h => <th key={h} className="th">{h}</th>)}</tr>
+          </thead>
+          <tbody className="divide-y divide-ink-100">
+            {b.lines.map(l => (
+              <tr key={l.id} className="row">
+                <td className="td tnum text-ink-400">{l.lineNo}</td>
+                <td className="td">
+                  <form action={reassignLine} className="flex items-center gap-1">
+                    <input type="hidden" name="lineId" value={l.id} />
+                    <select name="supplierId" defaultValue={l.supplierId || ""} className="input input-sm w-36">
+                      <option value="">—</option>
+                      {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
+                    <button className="text-2xs text-brand-600 hover:underline">set</button>
+                  </form>
+                </td>
+                <td className="td">{l.product?.name || l.description || dash}</td>
+                <td className="td font-mono text-xs">{l.containerNo || dash}</td>
+                <td className="td font-mono text-xs">{l.sealNo || dash}</td>
+                <td className="td tnum">{l.packages ?? dash}</td>
+                <td className="td tnum">{l.netWeightKg != null ? fmt(l.netWeightKg) : dash}</td>
+                <td className="td tnum">{l.grossWeightKg != null ? fmt(l.grossWeightKg) : dash}</td>
+                <td className="td whitespace-nowrap">{l.packingDate ? fdate(l.packingDate) : dash}</td>
+                <td className="td">
+                  {l.po
+                    ? <a href={`/api/po/${l.poId}`} target="_blank" rel="noreferrer"
+                         className="text-brand-700 hover:underline">{l.po.number}</a>
+                    : dash}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </ShipmentPanel>
+    );
+  };
+
   return (
     <div>
       <PageHeader
@@ -187,92 +288,25 @@ export default async function Suppliers({ searchParams }) {
             </span>
           </div>
 
-          <div className="space-y-5">
-            {withLines.map(b => {
-              const filled = b.lines.filter(l => l.packingSlipFile).length;
-              const slipFile = b.lines.find(l => l.packingSlipFile)?.packingSlipFile || null;
-              const supplierIds = [...new Set(b.lines.map(l => l.supplierId).filter(Boolean))];
-              const commonSupplier = supplierIds.length === 1 ? supplierIds[0] : "";
+          <WorkSection
+            title="Needs a packing slip"
+            count={pending.length}
+            note={countNote(pending)}
+            tone="work"
+            collapsible={false}
+          >
+            {pending.map(b => panel(b, true))}
+          </WorkSection>
 
-              return (
-                <div key={b.id} className="panel overflow-hidden">
-                  {/* booking header — the slip belongs to the whole booking */}
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink-200 bg-ink-100 px-4 py-3">
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <Link href={`/bookings/${b.id}`} className="font-semibold text-brand-700 hover:underline">
-                        {b.number}
-                      </Link>
-                      <span className="text-xs text-ink-500">
-                        {b.pol || "?"} → {b.pod || "?"} · {b.lines.length} container{b.lines.length === 1 ? "" : "s"}
-                      </span>
-                      <span className={`badge ${filled === b.lines.length ? "bg-emerald-50 text-emerald-700" : "bg-ink-100 text-ink-600"}`}>
-                        {filled}/{b.lines.length} filled
-                      </span>
-                      {slipFile && (
-                        <span className="max-w-full truncate text-2xs text-ink-400 sm:max-w-[16rem]" title={slipFile}>{slipFile}</span>
-                      )}
-                    </div>
-
-                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-                      <form action={reassignBooking} className="flex items-center gap-1.5">
-                        <input type="hidden" name="bookingId" value={b.id} />
-                        <span className="shrink-0 text-2xs text-ink-400">Supplier</span>
-                        <select name="supplierId" defaultValue={commonSupplier} className="input input-sm w-full min-w-0 sm:w-44">
-                          <option value="">— not allocated —</option>
-                          {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                        </select>
-                        <button className="btn-secondary btn-sm shrink-0">Apply to all</button>
-                      </form>
-
-                      <PackingSlipUpload
-                        booking={{ id: b.id, number: b.number, lineCount: b.lines.length, filled, slipFile }}
-                        action={uploadPackingSlip}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full">
-                      <thead className="border-b border-ink-200">
-                        <tr>{["#", "Supplier", "Product", "Container", "Seal", "Packages", "Net (kg)", "Gross (kg)", "Packed", "PO"]
-                          .map(h => <th key={h} className="th">{h}</th>)}</tr>
-                      </thead>
-                      <tbody className="divide-y divide-ink-100">
-                        {b.lines.map(l => (
-                          <tr key={l.id} className="row">
-                            <td className="td tnum text-ink-400">{l.lineNo}</td>
-                            <td className="td">
-                              <form action={reassignLine} className="flex items-center gap-1">
-                                <input type="hidden" name="lineId" value={l.id} />
-                                <select name="supplierId" defaultValue={l.supplierId || ""} className="input input-sm w-36">
-                                  <option value="">—</option>
-                                  {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                </select>
-                                <button className="text-2xs text-brand-600 hover:underline">set</button>
-                              </form>
-                            </td>
-                            <td className="td">{l.product?.name || l.description || dash}</td>
-                            <td className="td font-mono text-xs">{l.containerNo || dash}</td>
-                            <td className="td font-mono text-xs">{l.sealNo || dash}</td>
-                            <td className="td tnum">{l.packages ?? dash}</td>
-                            <td className="td tnum">{l.netWeightKg != null ? fmt(l.netWeightKg) : dash}</td>
-                            <td className="td tnum">{l.grossWeightKg != null ? fmt(l.grossWeightKg) : dash}</td>
-                            <td className="td whitespace-nowrap">{l.packingDate ? fdate(l.packingDate) : dash}</td>
-                            <td className="td">
-                              {l.po
-                                ? <a href={`/api/po/${l.poId}`} target="_blank" rel="noreferrer"
-                                     className="text-brand-700 hover:underline">{l.po.number}</a>
-                                : dash}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <WorkSection
+            title="Complete"
+            count={complete.length}
+            note={countNote(complete)}
+            tone="done"
+            defaultOpen={false}
+          >
+            {complete.map(b => panel(b, false))}
+          </WorkSection>
         </>
       )}
     </div>

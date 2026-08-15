@@ -12,9 +12,14 @@ import { IconUpload, IconPlus, IconCheck, IconAlert } from "@/components/icons";
 import TableToolbar from "@/components/TableToolbar";
 import SortHeader from "@/components/SortHeader";
 import { SelectionProvider, SelectRow, SelectAll, ExportButtons } from "@/components/TableSelection";
-import { readTableQuery, sortRows, searchWhere, dateRangeWhere } from "@/lib/table-query";
+import { readTableQuery, sortRows, searchWhere, dateRangeWhere, paginate } from "@/lib/table-query";
+import Pagination from "@/components/Pagination";
 
 export const dynamic = "force-dynamic";
+
+// 25 rows is about two screens on a laptop — enough that scanning still beats
+// paging, few enough that the page never becomes a chore to scroll.
+const PER_PAGE = 25;
 
 // Matches the tracking sheet, column for column.
 // `key` is what the row sorts by; `dir` is the direction a first click uses —
@@ -65,7 +70,7 @@ export default async function Bookings({ searchParams }) {
   requireUser();
 
   // Newest first by default — most people are looking at what just came in.
-  const query = readTableQuery(searchParams, { defaultSort: "erd", defaultDir: "desc" });
+  const query = readTableQuery(searchParams, { defaultSort: "erd", defaultDir: "desc", perPage: PER_PAGE });
 
   const where = {
     ...searchWhere(query.q, [
@@ -93,7 +98,9 @@ export default async function Bookings({ searchParams }) {
 
   // Sorted here rather than in the query: several columns come off relations,
   // and this keeps blanks at the bottom in both directions.
-  const rows = sortRows(bookings, SORT_ACCESSORS[query.sort] || SORT_ACCESSORS.erd, query.dir);
+  const sorted = sortRows(bookings, SORT_ACCESSORS[query.sort] || SORT_ACCESSORS.erd, query.dir);
+  const paged = paginate(sorted, query);
+  const rows = paged.rows;
 
   const allPos = allPosRaw.map(p => ({
     id: p.id,
@@ -144,7 +151,7 @@ export default async function Bookings({ searchParams }) {
           searchPlaceholder="Booking no, vessel, voyage, port…"
           dateLabel="ERD"
           total={total}
-          shown={rows.length}
+          shown={sorted.length}
         />
       )}
 
@@ -158,9 +165,9 @@ export default async function Bookings({ searchParams }) {
       ) : (
         <SelectionProvider ids={rows.map(b => b.id)}>
         {/* Tick rows to export just those; with nothing ticked the buttons take
-            everything currently filtered. */}
+            everything the filters match, across every page — not just this one. */}
         <div className="mb-3 flex items-center justify-end">
-          <ExportButtons query={query} />
+          <ExportButtons query={query} matching={sorted.length} />
         </div>
 
         {/* Phone: one card per booking. The 16-column grid is unusable at this width. */}
@@ -270,6 +277,17 @@ export default async function Bookings({ searchParams }) {
             </table>
           </div>
         </div>
+
+        <Pagination
+          basePath="/bookings"
+          query={query}
+          page={paged.page}
+          pages={paged.pages}
+          from={paged.from}
+          to={paged.to}
+          total={paged.total}
+          unit="shipment"
+        />
         </SelectionProvider>
       )}
 
