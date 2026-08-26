@@ -2,10 +2,11 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { getCompany } from "@/lib/company";
-import { PageHeader, Field } from "@/components/ui";
-import PoLinesEditor from "@/components/PoLinesEditor";
+import { PageHeader } from "@/components/ui";
+import PoForm from "@/components/PoForm";
 import { createPoAction } from "@/lib/actions-po";
 import { ACTIVE_BOOKING } from "@/lib/booking-scope";
+import { poPrefixFor } from "@/lib/numbering";
 
 export const dynamic = "force-dynamic";
 
@@ -18,12 +19,19 @@ export default async function NewPo({ searchParams }) {
     getCompany(),
   ]);
 
+  // The prefix depends on the first product's category, which isn't chosen yet,
+  // so show both forms rather than a single number that might be wrong.
   const now = new Date();
-  const nextStem = `${company.poPrefix}${String(now.getFullYear()).slice(-2)}${String(now.getMonth() + 1).padStart(2, "0")}_`;
+  const period = `${String(now.getFullYear()).slice(-2)}${String(now.getMonth() + 1).padStart(2, "0")}_`;
+  const plastic = `${poPrefixFor("Plastics", company.poPrefix)}${period}00X`;
+  const other = `${poPrefixFor("Paper", company.poPrefix)}${period}00X`;
 
   return (
     <div className="max-w-4xl">
-      <PageHeader title="Generate Purchase Order" subtitle={`Numbered automatically as ${nextStem}00X`} />
+      <PageHeader
+        title="Generate Purchase Order"
+        subtitle={`Numbered automatically — ${plastic} for plastics, ${other} for everything else`}
+      />
 
       {suppliers.length === 0 && (
         <div className="alert-warn mb-5">
@@ -34,39 +42,14 @@ export default async function NewPo({ searchParams }) {
         <div className="alert-error mb-5">{decodeURIComponent(searchParams.error)}</div>
       )}
 
-      <form action={createPoAction} className="card space-y-4">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <Field label="Supplier *">
-            <select name="supplierId" required className="input">
-              <option value="">Select supplier…</option>
-              {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-          </Field>
-          <Field label="Payment Terms"><input name="paymentTerms" placeholder="e.g. 30 days from invoice" className="input" /></Field>
-          <Field label="Pricing Term (prints in the Pricing column)"><input name="pricingTerm" placeholder="FAS (Auckland)" className="input" /></Field>
-        </div>
-
-        <PoLinesEditor products={products} />
-
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Field label="Link to Booking (optional — you can also do this from the Booking tab)">
-            <select name="bookingId" className="input">
-              <option value="">— none —</option>
-              {bookings.map(b => (
-                <option key={b.id} value={b.id}>
-                  {b.number}{b.pol ? ` · ${b.pol} → ${b.pod || "?"}` : ""}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Notes (internal)"><input name="notes" className="input" /></Field>
-        </div>
-
-        <div className="flex gap-2">
-          <button className="btn">Generate PO</button>
-          <Link href="/purchase" className="btn-secondary">Cancel</Link>
-        </div>
-      </form>
+      <PoForm
+        action={createPoAction}
+        suppliers={suppliers}
+        products={products}
+        bookings={bookings}
+        defaultTerms={company.defaultTerms || ""}
+        submitLabel="Generate PO"
+      />
     </div>
   );
 }

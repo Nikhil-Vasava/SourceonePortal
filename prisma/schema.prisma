@@ -164,6 +164,11 @@ model PurchaseOrder {
   incoterm     String?
   shippingTerms String?
   notes        String?
+  // The terms & conditions printed on the PDF. Stored per order, not read from
+  // settings at print time: a PO is a contract, so reprinting one from 2026
+  // must show the terms that were agreed then, not whatever the default has
+  // since become. Seeded from CompanySetting.defaultTerms when the PO is made.
+  terms        String?
   createdAt    DateTime @default(now())
 
   lines      PurchaseOrderLine[]
@@ -325,9 +330,15 @@ model CompanySetting {
   importExportNo String @default("40735917J")
   phone          String @default("+64 (027) 350 1499")
   email          String @default("Info@sourceoneventures.nz")
-  poPrefix       String @default("NZP")
-  minimumWeight  String @default("20 MT.")
+  // Base prefix. Plastics POs get a "P" appended (NZP), everything else
+  // doesn't (NZ) — see nextPoNumber.
+  poPrefix       String @default("NZ")
+  minimumWeight  String @default("20 MT.")   // legacy; superseded by defaultTerms
   defaultComments String @default("Currency mentioned is in USD")
+
+  // Starting point for every new PO's terms. Editable in Settings, and editable
+  // again per-PO before the document is generated.
+  defaultTerms String @default("- Weight loss of more than 2% is claimable.\n- Moisture above 10% is claimable.\n- Minimum Weight 22 MT.\n- Quality: Material must match specifications mentioned in the ISRI Scrap Specifications Circular and photos shared before booking.\n- Loading pictures and seal numbers must be provided within 24 hours of loading.")
 
   // ===== Delivery SLA =====
   // Contractual windows, in days. Editable in Settings so a renegotiated
