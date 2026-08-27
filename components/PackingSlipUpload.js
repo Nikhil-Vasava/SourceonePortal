@@ -62,7 +62,7 @@ export default function PackingSlipUpload({ booking, action }) {
                 className="input file:mr-3 file:rounded-md file:border-0 file:bg-brand-600 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-brand-950 hover:file:bg-brand-400"
               />
               <p className="mt-2 text-2xs text-ink-400">
-                PDF, Word or a photo. Container numbers already on a row are matched first;
+                PDF, Word, Excel or a photo. Container numbers already on a row are matched first;
                 anything else fills the remaining rows in the order the slip lists them.
               </p>
 
