@@ -7,6 +7,8 @@ import { deletePoAction } from "@/lib/actions-po";
 import TableToolbar from "@/components/TableToolbar";
 import SortHeader from "@/components/SortHeader";
 import PoValue from "@/components/PoValue";
+import EmailPoModal from "@/components/EmailPoModal";
+import { poDraftAction, sendPoEmailAction } from "@/lib/actions-po-email";
 import { IconPencil } from "@/components/icons";
 import { readTableQuery, sortRows, searchWhere, dateRangeWhere } from "@/lib/table-query";
 import { valueSortKey } from "@/lib/po-value";
@@ -141,6 +143,14 @@ export default async function Purchase({ searchParams }) {
                       <Link href={`/purchase/${po.id}/edit`} className="icon-btn" title={`Edit ${po.number}`} aria-label={`Edit ${po.number}`}>
                         <IconPencil size={14} />
                       </Link>
+                      <EmailPoModal
+                        poId={po.id}
+                        poNumber={po.number}
+                        supplier={po.partner.name}
+                        emailedAt={po.emailedAt ? po.emailedAt.toISOString() : null}
+                        getDraft={poDraftAction}
+                        sendAction={sendPoEmailAction}
+                      />
                     </div>
                   </td>
                   <td className="td">

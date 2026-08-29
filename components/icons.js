@@ -57,6 +57,12 @@ export const IconUpload = (p) => (
   <path d="M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16" /></Svg>
 );
 
+// Envelope — flap drawn as two strokes so it reads at 14px.
+export const IconMail = (p) => (
+  <Svg {...p}><rect x="2.5" y="5" width="19" height="14" rx="2" />
+  <path d="m3 7 9 6 9-6" /></Svg>
+);
+
 // Points right when closed; the caller rotates it 90° to point down when open.
 export const IconChevron = (p) => (<Svg {...p}><path d="m9 5 7 7-7 7" /></Svg>);
 

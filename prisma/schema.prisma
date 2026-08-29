@@ -176,6 +176,11 @@ model PurchaseOrder {
   documents  Document[]
   invoices   Invoice[] // vendor bills
   bookingLines BookingLine[]
+  // When this PO was last emailed, and to whom. Kept so the register can show
+  // at a glance that an order has already gone out — the question someone asks
+  // before re-sending and annoying the supplier.
+  emailedAt     DateTime?
+  emailedTo     String?
   sourceFile    String?
   extractedJson String?
   fromBookingId Int?
