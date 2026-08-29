@@ -4,9 +4,15 @@ module.exports = {
 
   experimental: {
     // Loaded at runtime on the server — webpack must not bundle these.
+    //
+    // nodemailer is here for the same reason as the rest: it resolves its
+    // transports and auth plugins with dynamic requires that webpack can't
+    // follow, so bundling it either fails the build or produces a module that
+    // throws on first use.
     serverComponentsExternalPackages: [
       "@prisma/client", ".prisma/client", "@prisma/adapter-pg", "pg",
       "pdf-lib", "@pdf-lib/fontkit", "pdfjs-dist",
+      "nodemailer", "exceljs",
     ],
 
     // Serverless functions only ship files the tracer can see.
