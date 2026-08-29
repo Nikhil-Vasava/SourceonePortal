@@ -29,8 +29,14 @@ module.exports = {
         "./node_modules/.prisma/client/**",
         "./node_modules/@prisma/client/**",
       ],
-      // The PO route reads both the fonts and the logo off disk at request time.
-      "/api/po/[id]": ["./public/fonts/**", "./public/logo-mark-blue-512.png"],
+      // The PO route reads the fonts, the logo and the approval stamp off disk
+      // at request time.
+      "/api/po/[id]": ["./public/fonts/**", "./public/logo-mark-blue-512.png", "./public/stamp-approved.png"],
+      // The Purchase page hosts the "email this PO" server action, which
+      // renders the very same PDF to attach it — so that function needs the
+      // same files. Easy to miss: the action isn't a route, it's bundled into
+      // whichever page imports it.
+      "/purchase": ["./public/fonts/**", "./public/logo-mark-blue-512.png", "./public/stamp-approved.png"],
       // The shipment export does the same for its letterhead — the PDF needs
       // the fonts, both formats need the logo.
       "/api/export/bookings": ["./public/fonts/**", "./public/logo-mark-blue-512.png"],

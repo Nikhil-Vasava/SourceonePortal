@@ -20,6 +20,7 @@ model User {
   createdAt DateTime @default(now())
   salesOrders SalesOrder[]
   auditLogs AuditLog[]
+  approvedPos PurchaseOrder[] @relation("poApprover")
 }
 
 model AuditLog {
@@ -176,6 +177,17 @@ model PurchaseOrder {
   documents  Document[]
   invoices   Invoice[] // vendor bills
   bookingLines BookingLine[]
+  // Approval. Staff raise purchase orders; an admin approves them, and only an
+  // approved order carries the company stamp on its PDF or can be emailed by
+  // non-admin staff.
+  //
+  // Any edit clears these — the stamp stands in for a signature, so it must
+  // never sit on a document the approver didn't actually see.
+  approvedAt    DateTime?
+  approvedById  Int?
+  approvedBy    User?     @relation("poApprover", fields: [approvedById], references: [id])
+  approvedName  String?   // kept flat so the PDF still names the approver if the user is later removed
+
   // When this PO was last emailed, and to whom. Kept so the register can show
   // at a glance that an order has already gone out — the question someone asks
   // before re-sending and annoying the supplier.

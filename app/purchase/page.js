@@ -8,7 +8,9 @@ import TableToolbar from "@/components/TableToolbar";
 import SortHeader from "@/components/SortHeader";
 import PoValue from "@/components/PoValue";
 import EmailPoModal from "@/components/EmailPoModal";
+import ApprovePoButton from "@/components/ApprovePoButton";
 import { poDraftAction, sendPoEmailAction } from "@/lib/actions-po-email";
+import { approvePoAction, unapprovePoAction } from "@/lib/actions-po-approval";
 import { IconPencil } from "@/components/icons";
 import { readTableQuery, sortRows, searchWhere, dateRangeWhere } from "@/lib/table-query";
 import { valueSortKey } from "@/lib/po-value";
@@ -43,7 +45,8 @@ const SORT_ACCESSORS = {
 export const dynamic = "force-dynamic";
 
 export default async function Purchase({ searchParams }) {
-  requireUser();
+  const user = requireUser();
+  const isAdmin = user.role === "ADMIN";
 
   const query = readTableQuery(searchParams, { defaultSort: "date", defaultDir: "desc" });
 
@@ -143,14 +146,35 @@ export default async function Purchase({ searchParams }) {
                       <Link href={`/purchase/${po.id}/edit`} className="icon-btn" title={`Edit ${po.number}`} aria-label={`Edit ${po.number}`}>
                         <IconPencil size={14} />
                       </Link>
-                      <EmailPoModal
-                        poId={po.id}
-                        poNumber={po.number}
-                        supplier={po.partner.name}
-                        emailedAt={po.emailedAt ? po.emailedAt.toISOString() : null}
-                        getDraft={poDraftAction}
-                        sendAction={sendPoEmailAction}
-                      />
+
+                      {isAdmin && (
+                        <ApprovePoButton
+                          poId={po.id}
+                          poNumber={po.number}
+                          supplier={po.partner.name}
+                          approvedAt={po.approvedAt ? po.approvedAt.toISOString() : null}
+                          approvedName={po.approvedName}
+                          approve={approvePoAction}
+                          unapprove={unapprovePoAction}
+                        />
+                      )}
+
+                      {/* Staff can only send an approved order. Admins can send
+                          at any time — they're the ones who approve. */}
+                      {(isAdmin || po.approvedAt) ? (
+                        <EmailPoModal
+                          poId={po.id}
+                          poNumber={po.number}
+                          supplier={po.partner.name}
+                          emailedAt={po.emailedAt ? po.emailedAt.toISOString() : null}
+                          getDraft={poDraftAction}
+                          sendAction={sendPoEmailAction}
+                        />
+                      ) : (
+                        <span className="px-1 text-2xs text-ink-400" title="An admin has to approve this before it can be emailed">
+                          awaiting approval
+                        </span>
+                      )}
                     </div>
                   </td>
                   <td className="td">
