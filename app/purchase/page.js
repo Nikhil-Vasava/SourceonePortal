@@ -159,9 +159,10 @@ export default async function Purchase({ searchParams }) {
                         />
                       )}
 
-                      {/* Staff can only send an approved order. Admins can send
-                          at any time — they're the ones who approve. */}
-                      {(isAdmin || po.approvedAt) ? (
+                      {/* Nothing unapproved is emailed, by anyone. An
+                          unapproved PO has no stamp on its PDF, and a supplier
+                          can't tell that from the real thing. */}
+                      {po.approvedAt ? (
                         <EmailPoModal
                           poId={po.id}
                           poNumber={po.number}
@@ -171,7 +172,12 @@ export default async function Purchase({ searchParams }) {
                           sendAction={sendPoEmailAction}
                         />
                       ) : (
-                        <span className="px-1 text-2xs text-ink-400" title="An admin has to approve this before it can be emailed">
+                        <span
+                          className="px-1 text-2xs text-ink-400"
+                          title={isAdmin
+                            ? "Approve this first — its PDF has no stamp yet"
+                            : "An admin has to approve this before it can be emailed"}
+                        >
                           awaiting approval
                         </span>
                       )}

@@ -96,6 +96,8 @@ async function saveCompany(formData) {
       poPrefix: formData.get("poPrefix"),
       minimumWeight: formData.get("minimumWeight"),
       defaultComments: formData.get("defaultComments"),
+      // An unchecked checkbox submits nothing at all, so absence means off.
+      showPoLogo: formData.get("showPoLogo") === "on",
     },
   });
   revalidatePath("/info");
@@ -377,6 +379,20 @@ export default async function Info({ searchParams }) {
             <Field label="PO Number Prefix"><input name="poPrefix" defaultValue={company.poPrefix} className="input" /></Field>
             <Field label="Minimum Weight (T&C)"><input name="minimumWeight" defaultValue={company.minimumWeight} className="input" /></Field>
             <div className="sm:col-span-2"><Field label="Default PO Comments"><input name="defaultComments" defaultValue={company.defaultComments} className="input" /></Field></div>
+            <div className="sm:col-span-2">
+              <label className="flex items-start gap-2 rounded-lg border border-ink-200 bg-ink-100 px-3 py-2.5">
+                <input type="checkbox" name="showPoLogo" defaultChecked={company.showPoLogo}
+                       className="mt-0.5 h-3.5 w-3.5 accent-brand-500" />
+                <span className="text-xs text-ink-600">
+                  <b className="text-ink-800">Print the logo on purchase orders</b>
+                  <span className="mt-0.5 block text-2xs text-ink-400">
+                    Off while a new logo is being designed. Replace{" "}
+                    <code className="rounded bg-black/30 px-1 font-mono">public/logo-mark-blue-512.png</code>{" "}
+                    and tick this to bring it back — the rest of the letterhead doesn't move either way.
+                  </span>
+                </span>
+              </label>
+            </div>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <button className="btn">Save company</button>

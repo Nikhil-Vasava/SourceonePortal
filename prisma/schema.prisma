@@ -351,6 +351,11 @@ model CompanySetting {
   // doesn't (NZ) — see nextPoNumber.
   poPrefix       String @default("NZ")
   minimumWeight  String @default("20 MT.")   // legacy; superseded by defaultTerms
+
+  // Whether the logo prints in the PO letterhead. Off until the new logo is
+  // ready — a toggle rather than deleted code, so switching it back on is a
+  // tick box in Info → Company, not a redeploy.
+  showPoLogo     Boolean @default(false)
   defaultComments String @default("Currency mentioned is in USD")
 
   // Starting point for every new PO's terms. Editable in Settings, and editable
