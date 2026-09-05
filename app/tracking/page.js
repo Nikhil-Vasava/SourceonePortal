@@ -181,6 +181,7 @@ export default async function Tracking({ searchParams }) {
                     label="Empty pickup"
                     note={b.erd ? `ERD ${fdate(b.erd)}` : null}
                     doneLabel="Packed"
+                    overdueLabel={b.erd ? `Window closed ${fdate(b.erd)}` : null}
                   />
                 </div>
 

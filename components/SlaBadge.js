@@ -7,7 +7,9 @@ import { TONE_CLASS } from "@/lib/sla";
  * many days has this been running?" — and the band underneath says whether it
  * matters yet.
  */
-export function SlaBadge({ clock, label, estimate = false, note = null, doneLabel = null }) {
+export function SlaBadge({
+  clock, label, estimate = false, note = null, doneLabel = null, overdueLabel = null,
+}) {
   if (clock.band === "unknown") {
     return (
       <div className="rounded-lg border border-ink-200 bg-ink-100 px-3 py-2">
@@ -55,12 +57,19 @@ export function SlaBadge({ clock, label, estimate = false, note = null, doneLabe
         {clock.running
           ? clock.remaining >= 0
             ? `${clock.label} · ${clock.remaining} left`
-            : `${clock.label} by ${clock.overdueBy}d`
+            // A count of days overdue suits a contractual clock, where the
+            // question is how late you are. A pickup window just shuts on a
+            // date, so the caller can say that instead.
+            : (overdueLabel || `${clock.label} by ${clock.overdueBy}d`)
           // "Delivered in 9d" is right for a shipment and wrong for a stopped
           // pickup clock, so the caller can supply its own wording.
           : (doneLabel || clock.label)}
       </div>
-      {note && <div className="mt-0.5 text-2xs opacity-60">{note}</div>}
+      {/* The note is dropped once an overdue label is showing — that label
+          already carries the date, and repeating it reads as two facts. */}
+      {note && !(overdueLabel && clock.running && clock.remaining < 0) && (
+        <div className="mt-0.5 text-2xs opacity-60">{note}</div>
+      )}
     </div>
   );
 }
