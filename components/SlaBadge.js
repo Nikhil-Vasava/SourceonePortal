@@ -7,12 +7,28 @@ import { TONE_CLASS } from "@/lib/sla";
  * many days has this been running?" — and the band underneath says whether it
  * matters yet.
  */
-export function SlaBadge({ clock, label, estimate = false }) {
+export function SlaBadge({ clock, label, estimate = false, note = null, doneLabel = null }) {
   if (clock.band === "unknown") {
     return (
       <div className="rounded-lg border border-ink-200 bg-ink-100 px-3 py-2">
         <div className="text-2xs uppercase tracking-wider text-ink-400">{label}</div>
         <div className="mt-0.5 text-sm text-ink-400">Not started</div>
+      </div>
+    );
+  }
+
+  // A clock whose start date is in the future hasn't begun. The generic maths
+  // reports a negative elapsed and calls it "On track", which reads as though
+  // something is already running when nothing is.
+  if (clock.running && clock.elapsed < 0) {
+    const away = Math.abs(clock.elapsed);
+    return (
+      <div className="rounded-lg border border-ink-200 bg-ink-100 px-3 py-2">
+        <div className="text-2xs uppercase tracking-wider text-ink-400">{label}</div>
+        <div className="mt-0.5 text-sm text-ink-500">
+          Starts in {away} day{away === 1 ? "" : "s"}
+        </div>
+        {note && <div className="mt-0.5 text-2xs text-ink-400">{note}</div>}
       </div>
     );
   }
@@ -40,8 +56,11 @@ export function SlaBadge({ clock, label, estimate = false }) {
           ? clock.remaining >= 0
             ? `${clock.label} · ${clock.remaining} left`
             : `${clock.label} by ${clock.overdueBy}d`
-          : clock.label}
+          // "Delivered in 9d" is right for a shipment and wrong for a stopped
+          // pickup clock, so the caller can supply its own wording.
+          : (doneLabel || clock.label)}
       </div>
+      {note && <div className="mt-0.5 text-2xs opacity-60">{note}</div>}
     </div>
   );
 }

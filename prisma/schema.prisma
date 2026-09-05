@@ -281,6 +281,10 @@ model Booking {
   // from actualDeparture when it's known and falls back to etd until then.
   actualDeparture DateTime?
   // Stops the carrier clock. Set by "Mark delivered" on the Tracking page.
+  // Set when operations were emailed that the 14-day empty-pickup window has
+  // opened. Its only job is to stop the daily job sending the same notice
+  // again tomorrow, and the day after that.
+  pickupNoticeAt  DateTime?
   deliveredAt     DateTime?
   deliveryNote    String?
 }

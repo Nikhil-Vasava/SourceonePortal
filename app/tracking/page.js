@@ -174,6 +174,14 @@ export default async function Tracking({ searchParams }) {
                 <div className="grid shrink-0 grid-cols-2 gap-2 lg:w-72">
                   <SlaBadge clock={clocks.carrier} label="Carrier" estimate={clocks.carrierStartIsEstimate} />
                   <SlaBadge clock={clocks.buyer} label="Buyer" />
+                  {/* Internal prompt, not a contractual clock — it counts the
+                      14 days before ERD in which the empties must be arranged. */}
+                  <SlaBadge
+                    clock={clocks.pickup}
+                    label="Empty pickup"
+                    note={b.erd ? `ERD ${fdate(b.erd)}` : null}
+                    doneLabel="Packed"
+                  />
                 </div>
 
                 {/* Action */}

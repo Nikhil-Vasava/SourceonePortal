@@ -2,12 +2,18 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "buildCommand": "prisma generate && next build",
-
-  "regions": ["syd1"],
-
+  "regions": [
+    "syd1"
+  ],
   "functions": {
     "app/**": {
       "maxDuration": 60
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/pickup-notice",
+      "schedule": "0 19 * * *"
+    }
+  ]
 }
