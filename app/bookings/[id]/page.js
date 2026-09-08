@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUser, canSeePrices } from "@/lib/auth";
 import { fdate, fmt } from "@/lib/util";
 import { PageHeader, Info, Badge } from "@/components/ui";
 import EditBookingModal from "@/components/EditBookingModal";
@@ -35,7 +35,8 @@ async function deleteLine(formData) {
 }
 
 export default async function BookingDetail({ params, searchParams }) {
-  requireUser();
+  const user = requireUser();
+  const seePrices = canSeePrices(user);
   const id = Number(params.id);
   const b = await prisma.booking.findUnique({
     where: { id },
@@ -85,7 +86,7 @@ export default async function BookingDetail({ params, searchParams }) {
         <Info label="Cargo Cut-Off" value={fdate(b.cargoCutOff)} />
         <Info label="SI Sent Date" value={fdate(b.siSentDate)} />
         <Info label="Booked / Loaded Cont." value={`${b.bookedContainers ?? "—"} / ${b.loadedContainers ?? "—"}`} />
-        <Info label="Price / Cont. (USD)" value={b.pricePerContainer != null ? fmt(b.pricePerContainer) : null} />
+        {seePrices && <Info label="Price / Cont. (USD)" value={b.pricePerContainer != null ? fmt(b.pricePerContainer) : null} />}
         <Info label="Container Type" value={b.containerType} />
         <Info label="Commodity" value={b.commodity} />
         <Info label="Other Cont." value={b.otherContainers} />
@@ -111,7 +112,7 @@ export default async function BookingDetail({ params, searchParams }) {
                   <td className="td">{l.quantity != null ? `${l.quantity} ${l.qtyUnit || ""}` : "—"}</td>
                   <td className="td">{l.supplier?.name || <span className="text-ink-300">not set</span>}</td>
                   <td className="td">{l.product?.name || <span className="text-ink-300">not set</span>}</td>
-                  <td className="td">{l.price != null ? `${fmt(l.price)} ${l.priceUnit || ""}` : "—"}</td>
+                  {seePrices && <td className="td">{l.price != null ? `${fmt(l.price)} ${l.priceUnit || ""}` : "—"}</td>}
                   <td className="td">{l.pricingTerm || "—"}</td>
                   <td className="td">
                     {l.po ? (

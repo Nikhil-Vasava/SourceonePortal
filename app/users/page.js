@@ -1,6 +1,6 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { requireRole } from "@/lib/auth";
+import { requireRole, ROLES, ROLE_NOTES } from "@/lib/auth";
 import { PageHeader, Table } from "@/components/ui";
 import bcrypt from "bcryptjs";
 
@@ -28,7 +28,7 @@ export default async function Users() {
   const users = await prisma.user.findMany({ orderBy: { id: "asc" } });
   return (
     <div>
-      <PageHeader title="Users" subtitle="Role-based access: ADMIN · MANAGER · USER" />
+      <PageHeader title="Users" subtitle="ADMIN · PURCHASE · MANAGER · USER — only ADMIN and PURCHASE see prices" />
       <Table headers={["Name", "Email", "Role", "Region", "Status", ""]}>
         {users.map(u => (
           <tr key={u.id} className="row">
@@ -50,7 +50,7 @@ export default async function Users() {
           <input name="name" required placeholder="Name" className="input w-40" />
           <input name="email" type="email" required placeholder="Email" className="input w-56" />
           <input name="password" required placeholder="Password" className="input w-36" />
-          <select name="role" className="input w-32"><option>USER</option><option>MANAGER</option><option>ADMIN</option></select>
+          <select name="role" className="input w-36">{ROLES.map(r => <option key={r}>{r}</option>)}</select>
           <input name="region" placeholder="Region" className="input w-28" />
           <button className="btn">Create</button>
         </form>

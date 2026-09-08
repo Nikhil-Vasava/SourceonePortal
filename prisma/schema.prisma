@@ -14,7 +14,9 @@ model User {
   email     String   @unique
   name      String
   password  String
-  role      String   @default("USER") // ADMIN | MANAGER | USER
+  role      String   @default("USER") // ADMIN | PURCHASE | MANAGER | USER
+  // PURCHASE is the commercial role: prices and purchase orders. ADMIN adds
+  // approval and Settings. MANAGER and USER are operations only — no money.
   region    String?
   active    Boolean  @default(true)
   createdAt DateTime @default(now())

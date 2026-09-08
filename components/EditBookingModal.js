@@ -7,7 +7,7 @@ import { useModalForm } from "@/lib/use-modal-form";
 
 const d = (v) => (v ? String(v).slice(0, 10) : "");
 
-export default function EditBookingModal({ booking, action }) {
+export default function EditBookingModal({ booking, action, seePrices = false }) {
   const [open, setOpen] = useState(false);
   const b = booking;
 
@@ -63,7 +63,9 @@ export default function EditBookingModal({ booking, action }) {
 
               <div className="col-span-4 mt-2 border-t border-ink-200 pt-4 text-2xs font-semibold uppercase tracking-wider text-brand-600">Commercial — not in carrier documents</div>
 
-              <div><span className="label">Price / Cont. (USD)</span><input name="pricePerContainer" type="number" step="0.01" defaultValue={b.pricePerContainer ?? ""} className="input" /></div>
+              {seePrices && (
+                <div><span className="label">Price / Cont. (USD)</span><input name="pricePerContainer" type="number" step="0.01" defaultValue={b.pricePerContainer ?? ""} className="input" /></div>
+              )}
               <div><span className="label">Booked Cont.</span><input name="bookedContainers" type="number" defaultValue={b.bookedContainers ?? ""} className="input" /></div>
               <div><span className="label">Loaded Cont.</span><input name="loadedContainers" type="number" defaultValue={b.loadedContainers ?? ""} className="input" /></div>
               <div><span className="label">SI Sent Date</span><input name="siSentDate" type="date" defaultValue={d(b.siSentDate)} className="input" /></div>

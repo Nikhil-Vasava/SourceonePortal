@@ -18,7 +18,7 @@ import {
 const NAV = [
   { section: "Operations", items: [
     { href: "/", label: "Dashboard", Icon: IconDashboard },
-    { href: "/purchase", label: "Purchase", Icon: IconPurchase },
+    { href: "/purchase", label: "Purchase", Icon: IconPurchase, role: ["ADMIN", "PURCHASE"] },
     { href: "/bookings", label: "Booking", Icon: IconShip },
     { href: "/tracking", label: "Tracking", Icon: IconClock },
   ]},

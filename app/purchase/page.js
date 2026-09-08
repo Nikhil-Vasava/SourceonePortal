@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 import { fdate } from "@/lib/util";
 import { PageHeader, Empty, Badge } from "@/components/ui";
 import { deletePoAction } from "@/lib/actions-po";
@@ -45,7 +45,10 @@ const SORT_ACCESSORS = {
 export const dynamic = "force-dynamic";
 
 export default async function Purchase({ searchParams }) {
-  const user = requireUser();
+  // Purchase orders are priced documents end to end — the table, the PDF and
+  // the email all carry commercials — so the whole section is limited to the
+  // people allowed to see them rather than blanked field by field.
+  const user = requireRole("ADMIN", "PURCHASE");
   const isAdmin = user.role === "ADMIN";
 
   const query = readTableQuery(searchParams, { defaultSort: "date", defaultDir: "desc" });
@@ -127,7 +130,9 @@ export default async function Purchase({ searchParams }) {
                   <td className="td whitespace-nowrap">
                     {po.lines.map(l => <div key={l.id}>{l.qty} {l.uom}</div>)}
                   </td>
-                  <td className="td whitespace-nowrap"><PoValue po={po} /></td>
+                  <td className="td whitespace-nowrap">
+                    <PoValue po={po} />
+                  </td>
                   <td className="td">{po.shippingTerms || "—"}</td>
                   <td className="td">
                     {po.fromBooking

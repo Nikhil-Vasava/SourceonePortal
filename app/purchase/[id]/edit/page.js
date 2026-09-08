@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 import { getCompany } from "@/lib/company";
 import { PageHeader } from "@/components/ui";
 import PoForm from "@/components/PoForm";
@@ -11,7 +11,7 @@ import { fdate } from "@/lib/util";
 export const dynamic = "force-dynamic";
 
 export default async function EditPo({ params, searchParams }) {
-  requireUser();
+  requireRole("ADMIN", "PURCHASE");
   const id = Number(params.id);
   if (!Number.isFinite(id)) notFound();
 
@@ -32,6 +32,9 @@ export default async function EditPo({ params, searchParams }) {
   const plain = {
     id: po.id,
     number: po.number,
+    // Without this the form would default to today and quietly re-date the
+    // order every time someone edited anything else on it.
+    orderDate: po.orderDate.toISOString(),
     partnerId: po.partnerId,
     currency: po.currency,
     status: po.status,

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUser, canSeePrices } from "@/lib/auth";
 import { fdate, fmt } from "@/lib/util";
 import { PageHeader, Empty, Badge } from "@/components/ui";
 import EditBookingModal from "@/components/EditBookingModal";
@@ -67,7 +67,8 @@ const SORT_ACCESSORS = {
 const dash = <span className="text-ink-300">—</span>;
 
 export default async function Bookings({ searchParams }) {
-  requireUser();
+  const user = requireUser();
+  const seePrices = canSeePrices(user);
 
   // Newest first by default — most people are looking at what just came in.
   const query = readTableQuery(searchParams, { defaultSort: "erd", defaultDir: "desc", perPage: PER_PAGE });
@@ -173,7 +174,7 @@ export default async function Bookings({ searchParams }) {
         {/* Phone: one card per booking. The 16-column grid is unusable at this width. */}
         <div className="space-y-3 lg:hidden">
           {rows.map(b => (
-            <BookingCard key={b.id} booking={plain(b)}>
+            <BookingCard key={b.id} booking={plain(b)} seePrices={seePrices}>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <SelectRow id={b.id} label={b.number} />
                 <LinkPoCell
@@ -185,7 +186,7 @@ export default async function Bookings({ searchParams }) {
                   linkAction={linkPoAction}
                   unlinkAction={unlinkPoAction}
                 />
-                <EditBookingModal booking={plain(b)} action={updateBookingAction} />
+                <EditBookingModal booking={plain(b)} action={updateBookingAction} seePrices={seePrices} />
               </div>
             </BookingCard>
           ))}
@@ -247,7 +248,9 @@ export default async function Bookings({ searchParams }) {
                     <td className={td}>{b.pod || dash}</td>
                     <td className={td}>{b.placeOfDelivery || dash}</td>
                     <td className={`${td} text-right tnum font-semibold figure-key`}>
-                      {b.pricePerContainer != null ? fmt(b.pricePerContainer) : dash}
+                      {seePrices
+                        ? (b.pricePerContainer != null ? fmt(b.pricePerContainer) : dash)
+                        : <span className="text-ink-300">—</span>}
                     </td>
                     <td className={`${td} text-center tnum`}>{b.bookedContainers ?? dash}</td>
                     <td className={`${td} text-center tnum`}>{b.loadedContainers ?? dash}</td>
@@ -269,7 +272,7 @@ export default async function Bookings({ searchParams }) {
                       />
                     </td>
                     <td className={td}>
-                      <EditBookingModal booking={plain(b)} action={updateBookingAction} />
+                      <EditBookingModal booking={plain(b)} action={updateBookingAction} seePrices={seePrices} />
                     </td>
                   </tr>
                 ))}

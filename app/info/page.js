@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUser, canSeePrices } from "@/lib/auth";
 import { getCompany } from "@/lib/company";
 import { fmt } from "@/lib/util";
 import { PageHeader, Table, Empty, Field } from "@/components/ui";
@@ -106,7 +106,14 @@ async function saveCompany(formData) {
 /* ---------------------------------------------------------------------- page */
 
 export default async function Info({ searchParams }) {
-  requireUser();
+  const user = requireUser();
+  const seePrices = canSeePrices(user);
+  // Strip the two money fields from the product form for anyone who isn't
+  // allowed to see them — otherwise the modal would show and save prices the
+  // table has just hidden.
+  const productFields = seePrices
+    ? PRODUCT_FIELDS
+    : PRODUCT_FIELDS.filter(f => f.name !== "costPrice" && f.name !== "salePrice");
   const tab = searchParams?.tab || "suppliers";
 
   const [vendors, customers, logistics, products, ports, company] = await Promise.all([
@@ -217,7 +224,7 @@ export default async function Info({ searchParams }) {
     suppliers: <RecordModal fields={PARTNER_FIELDS} fixed={{ type: "VENDOR" }} action={savePartnerAction} title="Add supplier" />,
     buyers: <RecordModal fields={PARTNER_FIELDS} fixed={{ type: "CUSTOMER" }} action={savePartnerAction} title="Add buyer" />,
     logistics: <RecordModal fields={LOGISTICS_FIELDS} action={savePartnerAction} title="Add shipping line / forwarder / CHA" triggerLabel="Add partner" />,
-    products: <RecordModal fields={PRODUCT_FIELDS} action={saveProductAction} title="Add product" />,
+    products: <RecordModal fields={productFields} action={saveProductAction} title="Add product" />,
     ports: <RecordModal fields={PORT_FIELDS} action={savePortAction} title="Add port" />,
     company: null,
   }[tab];
@@ -262,7 +269,7 @@ export default async function Info({ searchParams }) {
       {tab === "products" && (
         products.length === 0 ? (
           <Empty text="No products yet"
-                 action={<RecordModal fields={PRODUCT_FIELDS} action={saveProductAction} title="Add product" />} />
+                 action={<RecordModal fields={productFields} action={saveProductAction} title="Add product" />} />
         ) : (
           <>
             {/* Phone: cards */}
@@ -279,12 +286,12 @@ export default async function Info({ searchParams }) {
                   <div className="mt-2 space-y-0.5">
                     <div className="rec-row"><span className="rec-key">Category</span><span className="rec-val">{p.category || "—"}{p.grade ? ` · ${p.grade}` : ""}</span></div>
                     <div className="rec-row"><span className="rec-key">Unit</span><span className="rec-val">{p.uom}</span></div>
-                    <div className="rec-row"><span className="rec-key">Cost / Sale</span><span className="rec-val">{fmt(p.costPrice)} / {fmt(p.salePrice)}</span></div>
+                    {seePrices && <div className="rec-row"><span className="rec-key">Cost / Sale</span><span className="rec-val">{fmt(p.costPrice)} / {fmt(p.salePrice)}</span></div>}
                   </div>
                   <div className="mt-3 flex items-center justify-between border-t border-ink-100 pt-2">
                     <ToggleActive id={p.id} active={p.active} action={toggleProductActiveAction} />
                     <div className="flex items-center gap-1">
-                      <RecordModal fields={PRODUCT_FIELDS} record={plain(p)} action={saveProductAction} title="Product" trigger="icon" />
+                      <RecordModal fields={productFields} record={plain(p)} action={saveProductAction} title="Product" trigger="icon" />
                       <DeleteRecord id={p.id} name={p.name} action={deleteProductAction} label="product" />
                     </div>
                   </div>
@@ -294,7 +301,7 @@ export default async function Info({ searchParams }) {
 
             {/* Desktop: table */}
             <div className="hidden lg:block">
-              <Table headers={["SKU", "Name", "Category", "Grade", "Unit", "Tax %", "Cost", "Sale", "Status", ""]}>
+              <Table headers={["SKU", "Name", "Category", "Grade", "Unit", "Tax %", ...(seePrices ? ["Cost", "Sale"] : []), "Status", ""]}>
                 {products.map(p => (
                   <tr key={p.id} className={`row ${p.active ? "" : "opacity-50"}`}>
                     <td className="td font-mono text-xs">{p.sku}</td>
@@ -303,13 +310,13 @@ export default async function Info({ searchParams }) {
                     <td className="td">{p.grade || "—"}</td>
                     <td className="td">{p.uom}</td>
                     <td className="td tnum">{p.taxRate}%</td>
-                    <td className="td tnum">{fmt(p.costPrice)}</td>
-                    <td className="td tnum">{fmt(p.salePrice)}</td>
+                    {seePrices && <td className="td tnum">{fmt(p.costPrice)}</td>}
+                    {seePrices && <td className="td tnum">{fmt(p.salePrice)}</td>}
                     <td className="td"><ActiveDot active={p.active} /></td>
                     <td className="td">
                       <div className="flex items-center justify-end gap-2">
                         <ToggleActive id={p.id} active={p.active} action={toggleProductActiveAction} />
-                        <RecordModal fields={PRODUCT_FIELDS} record={plain(p)} action={saveProductAction} title="Product" trigger="icon" />
+                        <RecordModal fields={productFields} record={plain(p)} action={saveProductAction} title="Product" trigger="icon" />
                         <DeleteRecord id={p.id} name={p.name} action={deleteProductAction} label="product" />
                       </div>
                     </td>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireUser, canSeePrices } from "@/lib/auth";
 import { fdate, fmt } from "@/lib/util";
 import { PageHeader, Empty, Table } from "@/components/ui";
 import { ACTIVE_BOOKING } from "@/lib/booking-scope";
@@ -14,11 +14,21 @@ export const dynamic = "force-dynamic";
 
 async function allocateLine(formData) {
   "use server";
+  requireUser();
   const lineId = Number(formData.get("lineId"));
   const buyerId = formData.get("buyerId") ? Number(formData.get("buyerId")) : null;
+
+  // The sale price input is hidden from anyone who can't see prices — and a
+  // hidden input submits nothing at all. Writing `null` on its absence would
+  // let an operations user silently erase a figure they were never shown, just
+  // by allocating a buyer. Only touch it when the field was actually present.
+  const hasSalePrice = formData.has("salePrice");
+
   await prisma.bookingLine.update({ where: { id: lineId }, data: {
     buyerId,
-    salePrice: formData.get("salePrice") ? Number(formData.get("salePrice")) : null,
+    ...(hasSalePrice && {
+      salePrice: formData.get("salePrice") ? Number(formData.get("salePrice")) : null,
+    }),
     saleTerms: formData.get("saleTerms") || null,
     buyerAllocatedAt: buyerId ? new Date() : null,
   }});
@@ -37,7 +47,8 @@ async function allocateBooking(formData) {
 }
 
 export default async function Buyers({ searchParams }) {
-  requireUser();
+  const user = requireUser();
+  const seePrices = canSeePrices(user);
   const query = readTableQuery(searchParams);
 
   const [allBookings, buyers] = await Promise.all([
@@ -123,7 +134,7 @@ export default async function Buyers({ searchParams }) {
                       <option value="">— none —</option>
                       {buyers.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
                     </select>
-                    <input name="salePrice" type="number" step="0.01" defaultValue={l.salePrice ?? ""} placeholder="Sale price" className="input w-28" />
+                    {seePrices && <input name="salePrice" type="number" step="0.01" defaultValue={l.salePrice ?? ""} placeholder="Sale price" className="input w-28" />}
                     <input name="saleTerms" defaultValue={l.saleTerms || ""} placeholder="e.g. CIF Jebel Ali" className="input w-40" />
                     <span className="text-xs text-ink-400">{l.buyerAllocatedAt ? fdate(l.buyerAllocatedAt) : ""}</span>
                     <button className="btn-secondary">Save</button>

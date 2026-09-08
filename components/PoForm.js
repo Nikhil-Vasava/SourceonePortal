@@ -47,6 +47,14 @@ export default function PoForm({
           </select>
         </Field>
 
+        <Field label="PO Date">
+          {/* Defaults to today, but back-dating matters: a PO is often raised
+              in the portal after the deal was agreed on the phone. */}
+          <input name="orderDate" type="date" required
+                 defaultValue={(po?.orderDate ?? new Date().toISOString()).slice(0, 10)}
+                 className="input" />
+        </Field>
+
         <Field label="Pricing Term (prints in the Pricing column)">
           <input name="pricingTerm" defaultValue={po?.shippingTerms ?? ""} placeholder="FAS (Auckland)" className="input" />
         </Field>

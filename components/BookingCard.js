@@ -23,7 +23,7 @@ function Row({ label, children }) {
   );
 }
 
-export default function BookingCard({ booking: b, children }) {
+export default function BookingCard({ booking: b, children, seePrices = false }) {
   const route = [b.pol, b.pod].filter(Boolean).join(" → ");
 
   return (
@@ -60,12 +60,14 @@ export default function BookingCard({ booking: b, children }) {
           <div className="text-2xs uppercase tracking-wider text-ink-400">Loaded</div>
           <div className="tnum text-sm font-semibold text-ink-900">{b.loadedContainers ?? "—"}</div>
         </div>
-        <div>
-          <div className="text-2xs uppercase tracking-wider text-ink-400">USD / cont.</div>
-          <div className="tnum text-sm font-semibold text-ink-900">
-            {b.pricePerContainer != null ? fmt(b.pricePerContainer) : "—"}
+        {seePrices && (
+          <div>
+            <div className="text-2xs uppercase tracking-wider text-ink-400">USD / cont.</div>
+            <div className="tnum text-sm font-semibold text-ink-900">
+              {b.pricePerContainer != null ? fmt(b.pricePerContainer) : "—"}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Cut-offs — the dates that actually bite */}

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { requireUser } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 import { pdfToText } from "@/lib/pdf-text";
 import { parsePoText } from "@/lib/po-parser";
 import { createPoFromExtract } from "@/lib/po-import";
@@ -58,7 +58,7 @@ async function importPo(formData) {
 }
 
 export default function ImportPo({ searchParams }) {
-  requireUser();
+  requireRole("ADMIN", "PURCHASE");
   return (
     <div className="max-w-2xl">
       <PageHeader title="Import Purchase Order" subtitle="Upload an existing PO PDF — read instantly, no AI service involved" />

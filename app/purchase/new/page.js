@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 import { getCompany } from "@/lib/company";
 import { PageHeader } from "@/components/ui";
 import PoForm from "@/components/PoForm";
@@ -11,7 +11,7 @@ import { poPrefixFor } from "@/lib/numbering";
 export const dynamic = "force-dynamic";
 
 export default async function NewPo({ searchParams }) {
-  requireUser();
+  requireRole("ADMIN", "PURCHASE");
   const [suppliers, products, bookings, company] = await Promise.all([
     prisma.partner.findMany({ where: { type: { in: ["VENDOR", "BUYER"] }, active: true }, orderBy: { name: "asc" } }),
     prisma.product.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
