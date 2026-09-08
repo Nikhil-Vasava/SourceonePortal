@@ -15,7 +15,9 @@
     "partners": "node tools/import-partners.mjs",
     "partners:apply": "node tools/import-partners.mjs --apply",
     "buyers": "node tools/import-buyers.mjs",
-    "buyers:apply": "node tools/import-buyers.mjs --apply"
+    "buyers:apply": "node tools/import-buyers.mjs --apply",
+    "allocations": "node tools/backfill-allocations.mjs",
+    "allocations:apply": "node tools/backfill-allocations.mjs --apply"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "1.1.1",

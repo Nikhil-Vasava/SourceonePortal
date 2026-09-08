@@ -149,10 +149,12 @@ export default function Sidebar({ user, open, onClose }) {
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-50 text-2xs font-semibold text-brand-600">
               {initials(user.name)}
             </div>
-            <div className="min-w-0 flex-1 leading-tight">
-              <div className="truncate text-xs font-medium text-ink-900">{user.name}</div>
+            {/* The name is the way to your own account — every role can change
+                their own password, so it isn't behind the admin-only Users tab. */}
+            <Link href="/account" onClick={onClose} className="min-w-0 flex-1 leading-tight">
+              <div className="truncate text-xs font-medium text-ink-900 hover:text-brand-400">{user.name}</div>
               <div className="text-2xs uppercase tracking-wide text-ink-400">{user.role}</div>
-            </div>
+            </Link>
             <button onClick={logout} title="Sign out" aria-label="Sign out"
               className="icon-btn">
               <IconLogout size={16} />

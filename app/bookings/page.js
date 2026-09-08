@@ -13,6 +13,7 @@ import TableToolbar from "@/components/TableToolbar";
 import SortHeader from "@/components/SortHeader";
 import { SelectionProvider, SelectRow, SelectAll, ExportButtons } from "@/components/TableSelection";
 import { readTableQuery, sortRows, searchWhere, dateRangeWhere, paginate } from "@/lib/table-query";
+import { poBalance, describeBalance } from "@/lib/po-allocation";
 import Pagination from "@/components/Pagination";
 
 export const dynamic = "force-dynamic";
@@ -86,12 +87,11 @@ export default async function Bookings({ searchParams }) {
       where,
       include: {
         shippingLine: true, forwarder: true, lines: true,
-        purchaseOrders: { include: { partner: true } },
       },
       orderBy: { id: "desc" },
     }),
     prisma.purchaseOrder.findMany({
-      include: { partner: true, lines: { include: { product: true } } },
+      include: { partner: true, lines: { include: { product: true } }, allocations: true },
       orderBy: { id: "desc" },
     }),
     prisma.booking.count(),
@@ -103,13 +103,39 @@ export default async function Bookings({ searchParams }) {
   const paged = paginate(sorted, query);
   const rows = paged.rows;
 
+  // Each PO carries its own balance so the dropdown can say what's left
+  // before you pick it, rather than after.
   const allPos = allPosRaw.map(p => ({
     id: p.id,
     number: p.number,
     fromBookingId: p.fromBookingId,
     partnerName: p.partner.name,
     summary: p.lines.map(l => l.product?.name).filter(Boolean).join(", ").slice(0, 40),
+    balance: describeBalance(poBalance(p)),
   }));
+
+  // Which POs are on each booking, and how much of each one it carries.
+  //
+  // Driven by the allocation rows, not by `fromBookingId`. That column can only
+  // ever name one booking, so the second and third shipments of a split PO
+  // would show no chip and no way to unlink it.
+  const linkedByBooking = new Map();
+  const addLink = (bookingId, p, alloc) => {
+    if (!bookingId) return;
+    const list = linkedByBooking.get(bookingId) || [];
+    if (list.some(x => x.id === p.id)) return;
+    list.push({
+      id: p.id, number: p.number, partnerName: p.partner.name,
+      allocated: alloc?.qty ?? null, unit: alloc?.unit ?? null,
+    });
+    linkedByBooking.set(bookingId, list);
+  };
+  for (const p of allPosRaw) {
+    for (const a of p.allocations) addLink(a.bookingId, p, a);
+    // Orders linked before allocations existed have no row yet. They still
+    // belong on their booking — they just can't show a quantity.
+    addLink(p.fromBookingId, p, null);
+  }
 
   const plain = (o) => JSON.parse(JSON.stringify(o));
   const td = "border-b border-r border-ink-200 px-2.5 py-2 align-middle text-ink-700";
@@ -178,10 +204,7 @@ export default async function Bookings({ searchParams }) {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <SelectRow id={b.id} label={b.number} />
                 <LinkPoCell
-                  booking={plain({
-                    id: b.id,
-                    purchaseOrders: b.purchaseOrders.map(p => ({ id: p.id, number: p.number, partnerName: p.partner.name })),
-                  })}
+                  booking={plain({ id: b.id, purchaseOrders: linkedByBooking.get(b.id) || [] })}
                   allPos={allPos}
                   linkAction={linkPoAction}
                   unlinkAction={unlinkPoAction}
@@ -262,10 +285,7 @@ export default async function Bookings({ searchParams }) {
                     <td className={td}><Badge value={b.status} /></td>
                     <td className={td}>
                       <LinkPoCell
-                        booking={plain({
-                          id: b.id,
-                          purchaseOrders: b.purchaseOrders.map(p => ({ id: p.id, number: p.number, partnerName: p.partner.name })),
-                        })}
+                        booking={plain({ id: b.id, purchaseOrders: linkedByBooking.get(b.id) || [] })}
                         allPos={allPos}
                         linkAction={linkPoAction}
                         unlinkAction={unlinkPoAction}

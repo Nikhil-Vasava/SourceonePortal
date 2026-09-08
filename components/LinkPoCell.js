@@ -10,8 +10,9 @@ function SaveBtn() {
 export default function LinkPoCell({ booking, allPos, linkAction, unlinkAction }) {
   const linked = booking.purchaseOrders || [];
   const linkedIds = new Set(linked.map(p => p.id));
-  // A PO can be attached to this booking if it isn't already on another one.
-  const available = allPos.filter(p => !linkedIds.has(p.id) && (!p.fromBookingId || p.fromBookingId === booking.id));
+  // A PO can go on several bookings — 40 loads might sail as 10 + 7 + 15 + 8.
+  // The only one excluded is a PO already on THIS booking.
+  const available = allPos.filter(p => !linkedIds.has(p.id));
 
   // The 230px floor keeps the desktop column from collapsing, but it would
   // overflow a 390px phone once padding is counted — so only apply it from sm.
@@ -24,7 +25,12 @@ export default function LinkPoCell({ booking, allPos, linkAction, unlinkAction }
              className="whitespace-nowrap text-2xs font-semibold text-brand-700 hover:underline">
             {p.number}
           </a>
-          <span className="min-w-0 flex-1 truncate text-2xs text-ink-500" title={p.partnerName}>{p.partnerName}</span>
+          <span className="min-w-0 flex-1 truncate text-2xs text-ink-500" title={p.partnerName}>
+            {p.partnerName}
+            {p.allocated != null && (
+              <span className="ml-1 text-ink-400">· {p.allocated}{p.unit ? ` ${p.unit}` : ""}</span>
+            )}
+          </span>
           <form action={unlinkAction}>
             <input type="hidden" name="bookingId" value={booking.id} />
             <input type="hidden" name="poId" value={p.id} />
@@ -43,7 +49,8 @@ export default function LinkPoCell({ booking, allPos, linkAction, unlinkAction }
           </option>
           {available.map(p => (
             <option key={p.id} value={p.id}>
-              {p.number} — {p.partnerName}{p.summary ? ` (${p.summary})` : ""}
+              {p.number} — {p.partnerName}
+              {p.balance ? ` · ${p.balance}` : (p.summary ? ` (${p.summary})` : "")}
             </option>
           ))}
         </select>

@@ -175,6 +175,7 @@ model PurchaseOrder {
   createdAt    DateTime @default(now())
 
   lines      PurchaseOrderLine[]
+  allocations PoAllocation[]
   bookings   Booking[]
   documents  Document[]
   invoices   Invoice[] // vendor bills
@@ -199,6 +200,31 @@ model PurchaseOrder {
   extractedJson String?
   fromBookingId Int?
   fromBooking   Booking? @relation("bookingPos", fields: [fromBookingId], references: [id])
+}
+
+/// How much of a purchase order is carried by one booking.
+///
+/// A PO is agreed before anyone knows which vessels will carry it — 40 loads
+/// might go out as 10 + 7 + 15 + 8 across four shipments over several weeks.
+/// The old single `fromBookingId` could only ever name one of those.
+///
+/// The quantity isn't typed in. When a PO is attached to a booking the app
+/// takes that booking's own container count, because it already knows it and a
+/// number nobody has to enter is a number nobody can enter wrongly.
+model PoAllocation {
+  id        Int      @id @default(autoincrement())
+  poId      Int
+  po        PurchaseOrder @relation(fields: [poId], references: [id], onDelete: Cascade)
+  bookingId Int
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  qty       Float
+  unit      String?  // Loads | Containers | MT — copied from the PO line
+  createdAt DateTime @default(now())
+
+  // One row per pair: attaching the same PO to the same booking twice is a
+  // double-click, not a second shipment.
+  @@unique([poId, bookingId])
+  @@index([bookingId])
 }
 
 model PurchaseOrderLine {
@@ -257,6 +283,7 @@ model Booking {
   extractedJson String?
   lines      BookingLine[]
   purchaseOrders PurchaseOrder[] @relation("bookingPos")
+  poAllocations  PoAllocation[]
 
   // ===== Tracking sheet columns =====
   freightForwarder String?   // A

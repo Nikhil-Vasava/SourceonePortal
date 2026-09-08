@@ -14,6 +14,7 @@ import { approvePoAction, unapprovePoAction } from "@/lib/actions-po-approval";
 import { IconPencil } from "@/components/icons";
 import { readTableQuery, sortRows, searchWhere, dateRangeWhere } from "@/lib/table-query";
 import { valueSortKey } from "@/lib/po-value";
+import { poBalance, describeBalance } from "@/lib/po-allocation";
 
 // `key` sorts the row; `dir` is the direction the first click uses.
 const COLS = [
@@ -24,7 +25,7 @@ const COLS = [
   { label: "Qty", key: "qty", dir: "desc" },
   { label: "Value", key: "value", dir: "desc" },
   { label: "Pricing", key: "pricing", dir: "asc" },
-  { label: "Linked Booking", key: "booking", dir: "asc" },
+  { label: "Shipments", key: "booking", dir: "asc" },
   { label: "Source", key: "source", dir: "asc" },
   { label: "Status", key: "status", dir: "asc" },
 ];
@@ -37,7 +38,7 @@ const SORT_ACCESSORS = {
   qty:      po => po.lines.reduce((s, l) => s + (l.qty || 0), 0),
   value:    po => valueSortKey(po.lines),
   pricing:  po => po.shippingTerms,
-  booking:  po => po.fromBooking?.number,
+  booking:  po => po.allocations?.[0]?.booking?.number || po.fromBooking?.number,
   source:   po => (po.sourceFile ? "imported" : "manual"),
   status:   po => po.status,
 };
@@ -61,7 +62,10 @@ export default async function Purchase({ searchParams }) {
   const [posRaw, count] = await Promise.all([
     prisma.purchaseOrder.findMany({
       where,
-      include: { partner: true, lines: { include: { product: true } }, fromBooking: true },
+      include: {
+        partner: true, lines: { include: { product: true } }, fromBooking: true,
+        allocations: { include: { booking: { select: { id: true, number: true, vessel: true } } }, orderBy: { id: "asc" } },
+      },
       orderBy: { id: "desc" },
     }),
     prisma.purchaseOrder.count(),
@@ -135,9 +139,39 @@ export default async function Purchase({ searchParams }) {
                   </td>
                   <td className="td">{po.shippingTerms || "—"}</td>
                   <td className="td">
-                    {po.fromBooking
-                      ? <Link className="text-brand-700 underline" href={`/bookings/${po.fromBookingId}`}>{po.fromBooking.number}</Link>
-                      : <span className="text-ink-300">not linked</span>}
+                    {/* A PO can sail on several vessels — show every one, plus
+                        what's still unplaced. */}
+                    {po.allocations.length === 0 ? (
+                      // Orders linked before allocations existed still have the
+                      // old single pointer — show it rather than "not linked".
+                      po.fromBooking ? (
+                        <Link className="whitespace-nowrap text-2xs text-brand-500 hover:underline"
+                              href={`/bookings/${po.fromBookingId}`}>
+                          {po.fromBooking.number}
+                        </Link>
+                      ) : <span className="text-ink-300">not linked</span>
+                    ) : (
+                      <div className="space-y-0.5">
+                        {po.allocations.map(a => (
+                          <div key={a.id} className="whitespace-nowrap text-2xs">
+                            <Link className="text-brand-500 hover:underline" href={`/bookings/${a.bookingId}`}>
+                              {a.booking.number}
+                            </Link>
+                            <span className="ml-1 text-ink-400">
+                              {a.qty}{a.unit ? ` ${a.unit}` : ""}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {(() => {
+                      const bal = poBalance(po);
+                      if (!bal.meaningful) return null;
+                      const text = describeBalance(bal);
+                      const tone = bal.over ? "text-red-400"
+                        : bal.fullyPlaced ? "text-emerald-500" : "text-amber-400";
+                      return <div className={`mt-1 text-2xs ${tone}`}>{text}</div>;
+                    })()}
                   </td>
                   <td className="td text-xs">
                     {po.sourceFile
