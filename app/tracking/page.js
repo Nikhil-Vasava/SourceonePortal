@@ -179,7 +179,12 @@ export default async function Tracking({ searchParams }) {
                   <SlaBadge
                     clock={clocks.pickup}
                     label="Empty pickup"
-                    note={b.erd ? `ERD ${fdate(b.erd)}` : null}
+                    // No ERD, no clock, and no reminder to operations — the
+                    // notice is chosen by ERD. Carriers do leave the field
+                    // blank (ONE prints "Empty Pick Up Date :" with nothing
+                    // after it), so this says so rather than showing an empty
+                    // badge that looks like nothing is due.
+                    note={b.erd ? `ERD ${fdate(b.erd)}` : "No ERD — add one to start the reminder"}
                     doneLabel="Packed"
                     overdueLabel={b.erd ? `Window closed ${fdate(b.erd)}` : null}
                   />

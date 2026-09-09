@@ -97,7 +97,14 @@ export default function EditBookingModal({ booking, action, seePrices = false, c
 
               <div className="col-span-4 mt-2 border-t border-ink-200 pt-4 text-2xs font-semibold uppercase tracking-wider text-brand-600">Dates</div>
 
-              <div><span className="label">ERD</span><input name="erd" type="date" defaultValue={d(b.erd)} className="input" /></div>
+              {/* Filled in on import as ETD minus 14 days, then editable —
+                  the carriers state it too unreliably to read. Changing ETD
+                  does not move it again; this is the one that counts. */}
+              <div>
+                <span className="label">ERD</span>
+                <input name="erd" type="date" defaultValue={d(b.erd)} className="input" />
+                <span className="mt-1 block text-2xs text-ink-400">14 days before ETD</span>
+              </div>
               <div><span className="label">Docs Cut Off</span><input name="docsCutOff" type="date" defaultValue={d(b.docsCutOff)} className="input" /></div>
               <div><span className="label">Cargo Cut-Off</span><input name="cargoCutOff" type="date" defaultValue={d(b.cargoCutOff)} className="input" /></div>
               <div><span className="label">Container Type</span><input name="containerType" defaultValue={b.containerType || ""} className="input" /></div>

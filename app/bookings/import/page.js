@@ -103,8 +103,21 @@ export default function ImportBooking({ searchParams }) {
           <div className="mt-3 border-t border-ink-200 pt-3">
             <b className="text-ink-700">Read from the document:</b> Freight Forwarder · Booking No ·
             Shipping Line · Vessel · Voyage · Port of Loading · Port of Destination ·
-            Place of Delivery · Booked Cont. · Container Type · ERD · Docs Cut Off ·
-            Cargo Cut-Off · ETD/ETA · Commodity · Gross Weight
+            Place of Delivery · Booked Cont. · Container Type · Docs Cut Off ·
+            Cargo Cut-Off · ETD/ETA · Commodity · Gross Weight · Empty Depot
+            <div className="mt-1 text-2xs text-ink-400">
+              Empty Depot is where the empty container is collected. Carriers label it
+              differently — "Empty Container Depot", "Empty Pick UP CY", or inside the
+              MSC remarks — so check it after importing and correct it with Edit if it
+              came through blank. It's the address the 14-day pickup notice sends staff to.
+            </div>
+          </div>
+
+          <div className="mt-3">
+            <b className="text-ink-700">Worked out for you:</b> ERD — set to 14 days before
+            ETD. The carriers do print an empty release date but often leave it blank, and a
+            missing ERD means no pickup reminder at all. Correct it with <b>Edit</b> if the
+            carrier gives you a firm date.
           </div>
 
           <div className="mt-3">

@@ -15,6 +15,10 @@ export function SlaBadge({
       <div className="rounded-lg border border-ink-200 bg-ink-100 px-3 py-2">
         <div className="text-2xs uppercase tracking-wider text-ink-400">{label}</div>
         <div className="mt-0.5 text-sm text-ink-400">Not started</div>
+        {/* "Not started" alone doesn't distinguish "nothing is due yet" from
+            "the date this depends on is missing, so this will never start".
+            The caller says which. */}
+        {note && <div className="mt-0.5 text-2xs text-ink-400">{note}</div>}
       </div>
     );
   }
