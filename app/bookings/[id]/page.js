@@ -137,7 +137,7 @@ export default async function BookingDetail({ params, searchParams }) {
       {b.extractedJson && (
         <details className="card mt-4">
           <summary className="cursor-pointer text-sm font-semibold">Raw extracted data</summary>
-          <pre className="mt-2 overflow-x-auto rounded bg-black/30 p-3 text-xs">{b.extractedJson}</pre>
+          <pre className="code-chip mt-2 overflow-x-auto p-3 text-xs">{b.extractedJson}</pre>
         </details>
       )}
     </div>

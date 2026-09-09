@@ -227,8 +227,8 @@ export default async function Suppliers({ searchParams }) {
         <div className="alert-warn mb-5">
           <IconAlert size={18} className="mt-0.5 shrink-0" />
           <div>
-            <b>No extraction key set.</b> Add <code className="rounded bg-black/30 px-1 font-mono">GEMINI_API_KEY</code> to{" "}
-            <code className="rounded bg-black/30 px-1 font-mono">.env</code>, or type the values straight into each row.
+            <b>No extraction key set.</b> Add <code className="code-chip">GEMINI_API_KEY</code> to{" "}
+            <code className="code-chip">.env</code>, or type the values straight into each row.
           </div>
         </div>
       )}

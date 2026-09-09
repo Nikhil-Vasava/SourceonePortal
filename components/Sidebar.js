@@ -14,6 +14,8 @@ import {
   IconDashboard, IconPurchase, IconShip, IconFactory,
   IconHandshake, IconBook, IconUsers, IconLogout, IconSettings, IconX, IconClock,
 } from "@/components/icons";
+import Logo from "@/components/Logo";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const NAV = [
   { section: "Operations", items: [
@@ -38,7 +40,7 @@ function initials(name = "") {
     .map(w => w[0]).join("").toUpperCase() || "U";
 }
 
-export default function Sidebar({ user, open, onClose }) {
+export default function Sidebar({ user, theme, open, onClose }) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -73,7 +75,7 @@ export default function Sidebar({ user, open, onClose }) {
       {/* Backdrop — mobile only, and only while open */}
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-[rgba(4,8,12,.6)] backdrop-blur-sm lg:hidden animate-fade-in"
+          className="rail-scrim fixed inset-0 z-40 backdrop-blur-sm lg:hidden animate-fade-in"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -81,7 +83,7 @@ export default function Sidebar({ user, open, onClose }) {
 
       <aside
         className={[
-          "z-50 flex w-60 shrink-0 flex-col border-r border-ink-200 bg-[rgba(10,17,24,.72)] backdrop-blur-2xl",
+          "rail-surface z-50 flex w-60 shrink-0 flex-col border-r border-ink-200 backdrop-blur-2xl",
           // mobile: fixed drawer, slid off-screen unless open
           "fixed inset-y-0 left-0 transition-transform duration-200 ease-out",
           open ? "translate-x-0" : "-translate-x-full",
@@ -91,18 +93,13 @@ export default function Sidebar({ user, open, onClose }) {
         aria-label="Main navigation"
       >
         {/* Brand */}
-        {/* The full horizontal lockup, reversed for dark backgrounds. The rail
-            is 240px wide; at 158px the lockup clears the 120px minimum in the
-            brand guide and still leaves room for the mobile close button. */}
+        {/* The full horizontal lockup — reversed on dark, standard on light.
+            The rail is 240px wide; at 158px the lockup clears the 120px
+            minimum in the brand guide and still leaves room for the mobile
+            close button. */}
         <div className="flex items-center gap-2 px-4 py-5">
           <Link href="/" aria-label="SourceOne — dashboard" className="min-w-0">
-            <img
-              src="/logo-horizontal-dark.svg"
-              alt="Source One Ventures"
-              width={158}
-              height={56}
-              className="h-auto w-[158px]"
-            />
+            <Logo width={158} />
           </Link>
 
           {/* Close — mobile only */}
@@ -145,6 +142,12 @@ export default function Sidebar({ user, open, onClose }) {
 
         {/* User */}
         <div className="border-t border-ink-200 p-3">
+          {/* Above the account row, not buried in Settings — Settings is
+              admin-only, and everyone needs to be able to change this. */}
+          <div className="mb-1 px-0.5">
+            <ThemeToggle initial={theme} />
+          </div>
+
           <div className="flex items-center gap-3 rounded-lg px-2 py-2">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-50 text-2xs font-semibold text-brand-600">
               {initials(user.name)}

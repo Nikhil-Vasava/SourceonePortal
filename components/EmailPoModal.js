@@ -136,7 +136,7 @@ export default function EmailPoModal({ poId, poNumber, supplier, emailedAt, getD
                   <IconAlert size={18} className="mt-0.5 shrink-0" />
                   <div>
                     <b>Email isn't set up yet.</b> Add{" "}
-                    <code className="rounded bg-black/30 px-1 font-mono text-2xs">{draft.missing.join(", ")}</code>{" "}
+                    <code className="code-chip text-2xs">{draft.missing.join(", ")}</code>{" "}
                     to the environment variables and redeploy. You can still write the draft, but it can't be sent.
                   </div>
                 </div>

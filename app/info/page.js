@@ -394,7 +394,7 @@ export default async function Info({ searchParams }) {
                   <b className="text-ink-800">Print the logo on purchase orders</b>
                   <span className="mt-0.5 block text-2xs text-ink-400">
                     Off while a new logo is being designed. Replace{" "}
-                    <code className="rounded bg-black/30 px-1 font-mono">public/logo-mark-blue-512.png</code>{" "}
+                    <code className="code-chip">public/logo-mark-blue-512.png</code>{" "}
                     and tick this to bring it back — the rest of the letterhead doesn't move either way.
                   </span>
                 </span>

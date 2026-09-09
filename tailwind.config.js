@@ -2,96 +2,118 @@
 
 // "Calm Neon Glass" — see DESIGN-SYSTEM-PROMPT.md for the full spec.
 //
-// The scale names are kept from the old light theme so the app's markup didn't
-// have to be rewritten wholesale, but every value is now a dark-theme value.
+// TWO THEMES, ONE SET OF CLASS NAMES.
+//
+// Nothing here is a literal colour any more. Every shade points at a CSS
+// variable defined in app/globals.css — the dark values on :root, the light
+// values under [data-theme="light"]. That indirection is the whole trick: a
+// component written as `text-ink-900` renders bright on dark and near-black on
+// light without a single line of markup changing, and there is exactly one
+// place to edit a colour.
+//
 // Read the numbers as CONTRAST STRENGTH, not lightness:
 //
-//   ink-50   deepest surface (page background)
+//   ink-50   the page surface itself
 //   ink-200  hairline borders
 //   ink-400  faint text — the AA floor, never go dimmer
 //   ink-500  muted text
-//   ink-900  brightest text
+//   ink-900  the strongest text
 //
-// That's the same relationship the light theme had (higher = stronger against
-// the background); only the direction of "stronger" flipped.
+// Higher always means "stands out more against the page", in both themes. On
+// dark that means brighter; on light it means darker. Because the meaning is
+// relative, the same class is correct in both — which is why the markup did
+// not have to be touched.
+//
+// Two forms appear below:
+//
+//   rgb(var(--x) / <alpha-value>)   opaque shades. The variable holds a bare
+//                                   "34 211 238" triplet so Tailwind can still
+//                                   apply modifiers like `bg-brand-500/10`.
+//   var(--x)                        shades whose transparency IS the design
+//                                   (tinted fills, hairlines). Opacity
+//                                   modifiers do not apply to these — as was
+//                                   already the case before this change.
 
 module.exports = {
   content: ["./app/**/*.{js,jsx}", "./components/**/*.{js,jsx}"],
   theme: {
     extend: {
       colors: {
-        // Surfaces and text. Contrast ratios measured against #0A1118.
+        // Surfaces and text.
         ink: {
-          50:  "#0A1118",               // page background
-          100: "rgba(255,255,255,.05)", // subtle raised fill
-          200: "rgba(255,255,255,.09)", // hairline border
-          300: "#7d8798",               // clamped to the AA floor — em-dashes still carry meaning
-          400: "#7d8798",               // faint  — 5.23:1, the AA floor
-          500: "#98a2b8",               // muted  — 7.41:1
-          600: "#aab3c6",               // muted, one step up
-          700: "#c3cad9",               // body text
-          800: "#d7dce8",               // strong body
-          900: "#e8ecf6",               // brightest — 16.05:1
-          950: "#f4f6fb",
+          50:  "rgb(var(--c-ink-50) / <alpha-value>)",   // page surface
+          100: "var(--c-ink-100)",                       // subtle raised fill
+          200: "var(--c-ink-200)",                       // hairline border
+          300: "rgb(var(--c-ink-300) / <alpha-value>)",  // clamped to the AA floor — em-dashes still carry meaning
+          400: "rgb(var(--c-ink-400) / <alpha-value>)",  // faint — the AA floor
+          500: "rgb(var(--c-ink-500) / <alpha-value>)",  // muted
+          600: "rgb(var(--c-ink-600) / <alpha-value>)",
+          700: "rgb(var(--c-ink-700) / <alpha-value>)",  // body text
+          800: "rgb(var(--c-ink-800) / <alpha-value>)",  // strong body
+          900: "rgb(var(--c-ink-900) / <alpha-value>)",  // strongest
+          950: "rgb(var(--c-ink-950) / <alpha-value>)",
         },
 
         // Cyan accent. 600/700 are the interactive weights used across the app.
         brand: {
-          50:  "rgba(34,211,238,.12)",  // tinted fill
-          100: "rgba(34,211,238,.16)",
-          200: "rgba(34,211,238,.28)",
-          300: "rgba(34,211,238,.40)",  // tinted border
-          400: "#67e8f9",               // hover
-          500: "#22d3ee",
-          600: "#22d3ee",               // primary
-          700: "#67e8f9",               // links read better one step brighter on dark
-          800: "#a5f3fc",
-          900: "#cffafe",
-          950: "#04212a",               // the dark ink that sits ON the accent
+          50:  "var(--c-brand-50)",                       // tinted fill
+          100: "var(--c-brand-100)",
+          200: "var(--c-brand-200)",
+          300: "var(--c-brand-300)",                      // tinted border
+          400: "rgb(var(--c-brand-400) / <alpha-value>)", // hover
+          500: "rgb(var(--c-brand-500) / <alpha-value>)",
+          600: "rgb(var(--c-brand-600) / <alpha-value>)", // primary
+          700: "rgb(var(--c-brand-700) / <alpha-value>)", // links
+          800: "rgb(var(--c-brand-800) / <alpha-value>)",
+          900: "rgb(var(--c-brand-900) / <alpha-value>)",
+          950: "rgb(var(--c-brand-950) / <alpha-value>)", // the ink that sits ON the accent
         },
 
         // Violet — secondary grouping only, per the spec.
         teal: {
-          50:  "rgba(167,139,250,.12)",
-          500: "#a78bfa",
-          700: "#c4b5fd",
+          50:  "var(--c-violet-50)",
+          500: "rgb(var(--c-violet-500) / <alpha-value>)",
+          700: "rgb(var(--c-violet-700) / <alpha-value>)",
         },
         violet: {
-          50:  "rgba(167,139,250,.12)",
-          700: "#c4b5fd",
+          50:  "var(--c-violet-50)",
+          700: "rgb(var(--c-violet-700) / <alpha-value>)",
         },
 
-        // Status. Soft fills at 12%, borders at 22%, text at full strength.
+        // Status. Soft fills and borders are tints; the rest are solid.
         emerald: {
-          50:  "rgba(52,211,153,.12)",
-          200: "rgba(52,211,153,.22)",
-          500: "#34d399",
-          600: "#34d399",
-          700: "#6ee7b7",
-          900: "#a7f3d0",
+          50:  "var(--c-green-50)",
+          200: "var(--c-green-200)",
+          300: "rgb(var(--c-green-700) / <alpha-value>)",
+          500: "rgb(var(--c-green-500) / <alpha-value>)",
+          600: "rgb(var(--c-green-600) / <alpha-value>)",
+          700: "rgb(var(--c-green-700) / <alpha-value>)",
+          900: "rgb(var(--c-green-900) / <alpha-value>)",
         },
         red: {
-          50:  "rgba(251,113,133,.12)",
-          100: "rgba(251,113,133,.16)",
-          200: "rgba(251,113,133,.22)",
-          500: "#fb7185",
-          600: "#fb7185",
-          700: "#fda4af",
-          900: "#fecdd3",
+          50:  "var(--c-red-50)",
+          100: "var(--c-red-100)",
+          200: "var(--c-red-200)",
+          300: "rgb(var(--c-red-700) / <alpha-value>)",
+          400: "rgb(var(--c-red-600) / <alpha-value>)",
+          500: "rgb(var(--c-red-500) / <alpha-value>)",
+          600: "rgb(var(--c-red-600) / <alpha-value>)",
+          700: "rgb(var(--c-red-700) / <alpha-value>)",
+          900: "rgb(var(--c-red-900) / <alpha-value>)",
         },
         amber: {
-          50:  "rgba(251,191,36,.12)",
-          200: "rgba(251,191,36,.22)",
-          400: "#fbbf24",
-          600: "#fbbf24",
-          700: "#fcd34d",
-          800: "#fde68a",
-          900: "#fef3c7",
+          50:  "var(--c-amber-50)",
+          200: "var(--c-amber-200)",
+          400: "rgb(var(--c-amber-400) / <alpha-value>)",
+          600: "rgb(var(--c-amber-600) / <alpha-value>)",
+          700: "rgb(var(--c-amber-700) / <alpha-value>)",
+          800: "rgb(var(--c-amber-800) / <alpha-value>)",
+          900: "rgb(var(--c-amber-900) / <alpha-value>)",
         },
 
         // Explicit surface tokens for anything that used to be `bg-white`.
-        glass:  "rgba(255,255,255,.03)",
-        sticky: "#101a22",   // SOLID — frozen columns, never glass
+        glass:  "var(--card)",
+        sticky: "rgb(var(--c-sticky) / <alpha-value>)",  // SOLID — frozen columns, never glass
       },
 
       fontFamily: {

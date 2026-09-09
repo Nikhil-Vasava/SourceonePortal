@@ -71,7 +71,7 @@ export default function ImportBooking({ searchParams }) {
         <div className="alert-warn mb-5">
           <IconAlert size={18} className="mt-0.5 shrink-0" />
           <div>
-            <b>No <code className="rounded bg-black/30 px-1 font-mono">GEMINI_API_KEY</code> set.</b>{" "}
+            <b>No <code className="code-chip">GEMINI_API_KEY</code> set.</b>{" "}
             Maersk, MSC and ONE still import normally. Other carriers and scanned
             documents will need adding by hand.
           </div>

@@ -39,8 +39,8 @@ export default function Toast({ message, kind = "success", onDone, duration = 32
           className={`pointer-events-auto flex max-w-sm items-start gap-2.5 rounded-lg border px-3.5 py-2.5
                       text-sm shadow-lg backdrop-blur animate-toast-in
                       ${success
-                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"
-                        : "border-red-500/30 bg-red-500/10 text-red-200"}`}
+                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-900"
+                        : "border-red-500/30 bg-red-500/10 text-red-900"}`}
         >
           {success
             ? <IconCheck size={16} className="mt-0.5 shrink-0" />

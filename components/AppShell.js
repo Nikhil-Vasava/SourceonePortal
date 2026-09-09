@@ -6,14 +6,15 @@
 
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
+import Logo from "@/components/Logo";
 import { IconMenu } from "@/components/icons";
 
-export default function AppShell({ user, children }) {
+export default function AppShell({ user, theme, children }) {
   const [navOpen, setNavOpen] = useState(false);
 
   return (
     <div className="flex h-[100dvh] overflow-hidden">
-      <Sidebar user={user} open={navOpen} onClose={() => setNavOpen(false)} />
+      <Sidebar user={user} theme={theme} open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Top bar — mobile only; the sidebar carries the branding on desktop */}
@@ -27,13 +28,7 @@ export default function AppShell({ user, children }) {
           </button>
           {/* Same lockup as the rail, so the brand doesn't change shape when
               the sidebar collapses. 140px still clears the 120px minimum. */}
-          <img
-            src="/logo-horizontal-dark.svg"
-            alt="Source One Ventures"
-            width={140}
-            height={50}
-            className="h-auto w-[140px]"
-          />
+          <Logo width={140} />
         </header>
 
         <main className="flex-1 overflow-y-auto overflow-x-hidden">

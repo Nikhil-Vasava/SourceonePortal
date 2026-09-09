@@ -12,8 +12,10 @@ import Toast from "@/components/Toast";
 import { IconPencil, IconAlert, IconX, IconCheck } from "@/components/icons";
 
 const ROLE_TONE = {
-  ADMIN:    "bg-brand-500/15 text-brand-300",
-  PURCHASE: "bg-emerald-500/15 text-emerald-300",
+  // -700, not -300: the 300 weights are tints meant for borders, and reading
+  // a role off a 40%-opacity label was hard work in either theme.
+  ADMIN:    "bg-brand-500/15 text-brand-700",
+  PURCHASE: "bg-emerald-500/15 text-emerald-700",
   MANAGER:  "bg-ink-200 text-ink-500",
   USER:     "bg-ink-200 text-ink-500",
 };

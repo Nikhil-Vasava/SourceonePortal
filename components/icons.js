@@ -119,3 +119,20 @@ export const IconTrash = (p) => (
 export const IconMenu = (p) => (
   <Svg {...p}><path d="M3 6h18M3 12h18M3 18h18" /></Svg>
 );
+
+/* ------------------------------------------------------------------ theme */
+
+export const IconSun = (p) => (
+  <Svg {...p}><circle cx="12" cy="12" r="4" />
+  <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4" /></Svg>
+);
+
+export const IconMoon = (p) => (
+  <Svg {...p}><path d="M20 13.5A8 8 0 0 1 10.5 4a8 8 0 1 0 9.5 9.5Z" /></Svg>
+);
+
+// A monitor — "whatever the computer is set to".
+export const IconMonitor = (p) => (
+  <Svg {...p}><rect x="2.5" y="4" width="19" height="12.5" rx="2" />
+  <path d="M9 20.5h6M12 16.5v4" /></Svg>
+);

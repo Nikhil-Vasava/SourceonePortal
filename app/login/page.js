@@ -25,17 +25,24 @@ export default function LoginPage({ searchParams }) {
   return (
     <div className="relative flex min-h-[100dvh] items-center justify-center px-4">
       <div className="relative z-10 w-full max-w-sm">
-        {/* The one screen with room for the full lockup. Uses the reversed
-            wordmark — the brand navy is 1.46:1 on this background, invisible. */}
+        {/* The one screen with room for the full stacked lockup. Reversed on
+            dark — the brand navy is 1.46:1 there, invisible — and the standard
+            mark on light, where the reversed one would disappear instead. */}
         <div className="mb-8 flex flex-col items-center">
+          {/* eslint-disable @next/next/no-img-element */}
           <img
             src="/logo-primary-dark.svg"
             alt="Source One Ventures"
-            width={240}
-            height={185}
-            className="w-[220px] max-w-full"
-            // eslint-disable-next-line @next/next/no-img-element
+            width={240} height={185}
+            className="logo-for-dark w-[220px] max-w-full"
           />
+          <img
+            src="/logo-primary.svg"
+            alt="Source One Ventures"
+            width={240} height={185}
+            className="logo-for-light w-[220px] max-w-full"
+          />
+          {/* eslint-enable @next/next/no-img-element */}
           <p className="mt-3 text-xs uppercase tracking-widest text-ink-400">
             Import · Export · Trade
           </p>

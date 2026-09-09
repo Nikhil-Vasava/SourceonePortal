@@ -3,21 +3,95 @@
 @tailwind utilities;
 
 /* ===========================================================================
-   "Calm Neon Glass" — dark glassmorphic system for an all-day operations tool.
+   "Calm Neon Glass" — a glassmorphic system for an all-day operations tool.
    Full spec in DESIGN-SYSTEM-PROMPT.md.
 
    Ordering principle: data legibility beats atmosphere. Glass is for chrome
    only — never behind a table, never behind a frozen column.
+
+   ---------------------------------------------------------------------------
+   TWO THEMES
+   ---------------------------------------------------------------------------
+   Dark is the default and lives on :root. Light overrides the same names under
+   [data-theme="light"], set on <html> before the first paint.
+
+   The rule that keeps this maintainable: NO COMPONENT BELOW THIS BLOCK MAY
+   CONTAIN A LITERAL COLOUR. Every rule reads a token. That is what lets one
+   stylesheet serve both themes, and it is why a hardcoded rgba() slipped into
+   a component is a bug — it will look right in whichever theme it was written
+   against and wrong in the other.
+
+   Two naming families:
+     --c-*    raw palette, consumed by tailwind.config.js. Opaque ones hold a
+              bare "34 211 238" triplet so Tailwind can apply /opacity.
+     others   semantic roles (--text, --field, --overlay) used by the rules in
+              this file. These say what a colour is FOR, so the light theme can
+              answer the same question differently.
    =========================================================================== */
 
 @layer base {
   :root {
+    /* ---------------------------------------------------- palette (dark) */
+    --c-ink-50:  10 17 24;
+    --c-ink-100: rgba(255,255,255,.05);
+    --c-ink-200: rgba(255,255,255,.09);
+    --c-ink-300: 125 135 152;
+    --c-ink-400: 125 135 152;
+    --c-ink-500: 152 162 184;
+    --c-ink-600: 170 179 198;
+    --c-ink-700: 195 202 217;
+    --c-ink-800: 215 220 232;
+    --c-ink-900: 232 236 246;
+    --c-ink-950: 244 246 251;
+
+    --c-brand-50:  rgba(34,211,238,.12);
+    --c-brand-100: rgba(34,211,238,.16);
+    --c-brand-200: rgba(34,211,238,.28);
+    --c-brand-300: rgba(34,211,238,.40);
+    --c-brand-400: 103 232 249;
+    --c-brand-500: 34 211 238;
+    --c-brand-600: 34 211 238;
+    --c-brand-700: 103 232 249;
+    --c-brand-800: 165 243 252;
+    --c-brand-900: 207 250 254;
+    --c-brand-950: 4 33 42;
+
+    --c-violet-50:  rgba(167,139,250,.12);
+    --c-violet-500: 167 139 250;
+    --c-violet-700: 196 181 253;
+
+    --c-green-50:  rgba(52,211,153,.12);
+    --c-green-200: rgba(52,211,153,.22);
+    --c-green-500: 52 211 153;
+    --c-green-600: 52 211 153;
+    --c-green-700: 110 231 183;
+    --c-green-900: 167 243 208;
+
+    --c-red-50:  rgba(251,113,133,.12);
+    --c-red-100: rgba(251,113,133,.16);
+    --c-red-200: rgba(251,113,133,.22);
+    --c-red-500: 251 113 133;
+    --c-red-600: 251 113 133;
+    --c-red-700: 253 164 175;
+    --c-red-900: 254 205 211;
+
+    --c-amber-50:  rgba(251,191,36,.12);
+    --c-amber-200: rgba(251,191,36,.22);
+    --c-amber-400: 251 191 36;
+    --c-amber-600: 251 191 36;
+    --c-amber-700: 252 211 77;
+    --c-amber-800: 253 230 138;
+    --c-amber-900: 254 243 199;
+
+    --c-sticky: 16 26 34;
+
     /* accent */
     --accent:       #22d3ee;
     --accent-2:     #a78bfa;
     --accent-soft:  rgba(34, 211, 238, .12);
     --accent-line:  rgba(34, 211, 238, .40);
     --accent-ink:   #04212a;              /* text ON the accent — never white */
+    --accent-hover: #67e8f9;
 
     /* surfaces */
     --bg:            #0A1118;
@@ -38,6 +112,43 @@
     --red:   #fb7185; --red-soft:   rgba(251, 113, 133, .12);
     --amber: #fbbf24; --amber-soft: rgba(251, 191, 36, .12);
 
+    /* Component roles. On dark these are white- and black-alpha washes; on
+       light most of them become solid, because a black wash over a white page
+       reads as dirty grey rather than as depth. */
+    --field:          rgba(0,0,0,.28);   /* input fill — recessed below the glass */
+    --field-focus:    rgba(0,0,0,.4);
+    --field-disabled: rgba(0,0,0,.15);
+    --recessed:       rgba(0,0,0,.22);   /* secondary button, chip */
+    --panel:          rgba(255,255,255,.035);
+    --panel-shadow:   0 1px 0 rgba(255,255,255,.05) inset, 0 4px 16px rgba(0,0,0,.3);
+    --overlay:        rgba(4, 8, 12, .68);
+    --modal:          rgba(13, 22, 30, .96);
+    --rail:           rgba(10, 17, 24, .72);
+    --disabled-fill:  rgba(255,255,255,.09);
+    --code-chip:      rgba(0,0,0,.3);
+
+    /* hover washes */
+    --hover:      rgba(255,255,255,.06);
+    --hover-row:  rgba(255,255,255,.03);
+    --hover-nav:  rgba(255,255,255,.05);
+    --hover-ghost: rgba(34,211,238,.18);
+    --hover-danger: rgba(251,113,133,.2);
+
+    /* alert ink and hairlines */
+    --green-ink: #a7f3d0; --green-line: rgba(52,211,153,.22);
+    --red-ink:   #fecdd3; --red-line:   rgba(251,113,133,.22);
+    --amber-ink: #fef3c7; --amber-line: rgba(251,191,36,.22);
+    --info-ink:  #cffafe;
+
+    /* scrollbars */
+    --scroll-thumb:       rgba(255,255,255,.12);
+    --scroll-thumb-hover: rgba(255,255,255,.2);
+
+    /* The arrow baked into every <select>. The stroke colour is inside a data
+       URI, so it can't inherit — each theme needs its own copy. */
+    --select-arrow: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%2398a2b8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+    --select-option-bg: #101a22;
+
     --radius: 14px;
 
     /* motion — the built-in CSS curves are too weak */
@@ -48,15 +159,167 @@
     --glass:      0 1px 0 rgba(255,255,255,.06) inset, 0 8px 32px rgba(0,0,0,.45);
     --shadow-pop: 0 16px 48px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.06);
     --glow:       0 0 20px rgba(34, 211, 238, .28);
+    --glow-hover: 0 0 28px rgba(34, 211, 238, .38);
     --ring:       0 0 0 3px rgba(34, 211, 238, .22);
+    --frozen-shadow: 8px 0 12px -8px rgba(0,0,0,.9);
+    --figure-glow: 0 0 12px rgba(34,211,238,.35);
+
+    /* atmosphere — what the glass has to blur */
+    --grain: .025;
+    --atmosphere:
+      radial-gradient(ellipse 80% 50% at 15% -10%, rgba(45, 212, 218, .08), transparent 60%),
+      radial-gradient(ellipse 60% 60% at 90% 40%, rgba(56, 130, 246, .05), transparent 65%),
+      radial-gradient(ellipse 70% 40% at 50% 110%, rgba(20, 184, 166, .06), transparent 60%);
+
+    color-scheme: dark;
+  }
+
+  /* =========================================================================
+     LIGHT
+     -------------------------------------------------------------------------
+     Not an inversion. Three things genuinely change rather than flip:
+
+     1. The accent. #22d3ee is a beautiful neon on near-black and an illegible
+        wash on white — 1.9:1. Light uses #0e7490, dark enough to carry white
+        button text at 5.2:1 and to be read as a link at 6.4:1.
+     2. Depth. On dark, depth is a lighter film; on light it is a shadow. Every
+        surface that was a white wash becomes solid white with a soft shadow.
+     3. Glow. Neon bloom on a white page looks like a smudge, so --glow drops
+        to a plain shadow and the key-figure text glow turns off entirely.
+     ========================================================================= */
+  [data-theme="light"] {
+    --c-ink-50:  246 248 251;
+    --c-ink-100: rgba(15,23,42,.045);
+    --c-ink-200: rgba(15,23,42,.11);
+    /* #5d6b80, not slate-500 #64748b. The obvious choice measures 4.47:1 on
+       this page — a hair under AA, on the token the design system calls its
+       floor. Two shades darker clears it at 5.09:1, which is the same headroom
+       the dark theme's faint has. */
+    --c-ink-300: 93 107 128;
+    --c-ink-400: 93 107 128;
+    --c-ink-500: 71 85 105;
+    --c-ink-600: 51 65 85;
+    --c-ink-700: 30 41 59;
+    --c-ink-800: 15 23 42;
+    --c-ink-900: 15 23 42;
+    --c-ink-950: 2 6 23;
+
+    --c-brand-50:  rgba(14,116,144,.10);
+    --c-brand-100: rgba(14,116,144,.14);
+    --c-brand-200: rgba(14,116,144,.24);
+    --c-brand-300: rgba(14,116,144,.38);
+    --c-brand-400: 14 116 144;
+    --c-brand-500: 14 116 144;
+    --c-brand-600: 14 116 144;
+    --c-brand-700: 21 94 117;
+    --c-brand-800: 22 78 99;
+    --c-brand-900: 8 51 68;
+    --c-brand-950: 255 255 255;   /* white ink ON the accent */
+
+    --c-violet-50:  rgba(109,40,217,.10);
+    --c-violet-500: 109 40 217;
+    --c-violet-700: 91 33 182;
+
+    --c-green-50:  rgba(4,120,87,.10);
+    --c-green-200: rgba(4,120,87,.22);
+    --c-green-500: 5 150 105;
+    --c-green-600: 4 120 87;
+    --c-green-700: 6 95 70;
+    --c-green-900: 6 78 59;
+
+    --c-red-50:  rgba(190,18,60,.09);
+    --c-red-100: rgba(190,18,60,.13);
+    --c-red-200: rgba(190,18,60,.22);
+    --c-red-500: 225 29 72;
+    --c-red-600: 190 18 60;
+    --c-red-700: 159 18 57;
+    --c-red-900: 136 19 55;
+
+    --c-amber-50:  rgba(180,83,9,.10);
+    --c-amber-200: rgba(180,83,9,.22);
+    --c-amber-400: 180 83 9;
+    --c-amber-600: 180 83 9;
+    --c-amber-700: 146 64 14;
+    --c-amber-800: 120 53 15;
+    --c-amber-900: 113 63 18;
+
+    --c-sticky: 255 255 255;
+
+    --accent:       #0e7490;
+    --accent-2:     #6d28d9;
+    --accent-soft:  rgba(14, 116, 144, .10);
+    --accent-line:  rgba(14, 116, 144, .32);
+    --accent-ink:   #ffffff;              /* white ON the accent, this time */
+    --accent-hover: #155e75;
+
+    --bg:            #f6f8fb;
+    --card:          rgba(255, 255, 255, .86);
+    --glass-border:  rgba(15, 23, 42, .09);
+    --glass-edge:    rgba(255, 255, 255, .95);
+    --sticky:        #ffffff;
+    --border:        rgba(15, 23, 42, .11);
+    --border-strong: rgba(15, 23, 42, .18);
+
+    --text:  #0f172a;
+    --muted: #475569;
+    --faint: #5d6b80;   /* measured 5.09:1 — see the note on --c-ink-400 */
+
+    --green: #047857; --green-soft: rgba(4, 120, 87, .10);
+    --red:   #be123c; --red-soft:   rgba(190, 18, 60, .09);
+    --amber: #b45309; --amber-soft: rgba(180, 83, 9, .10);
+
+    /* Solid, not washed — see the note on --field above. */
+    --field:          #ffffff;
+    --field-focus:    #ffffff;
+    --field-disabled: rgba(15,23,42,.04);
+    --recessed:       #ffffff;
+    --panel:          #ffffff;
+    --panel-shadow:   0 1px 0 rgba(255,255,255,.9) inset, 0 1px 3px rgba(15,23,42,.06);
+    --overlay:        rgba(15, 23, 42, .35);
+    --modal:          #ffffff;
+    --rail:           rgba(255, 255, 255, .80);
+    --disabled-fill:  rgba(15,23,42,.07);
+    --code-chip:      rgba(15,23,42,.06);
+
+    --hover:        rgba(15,23,42,.05);
+    --hover-row:    rgba(15,23,42,.032);
+    --hover-nav:    rgba(15,23,42,.05);
+    --hover-ghost:  rgba(14,116,144,.16);
+    --hover-danger: rgba(190,18,60,.14);
+
+    --green-ink: #065f46; --green-line: rgba(4,120,87,.28);
+    --red-ink:   #9f1239; --red-line:   rgba(190,18,60,.24);
+    --amber-ink: #92400e; --amber-line: rgba(180,83,9,.28);
+    --info-ink:  #155e75;
+
+    --scroll-thumb:       rgba(15,23,42,.20);
+    --scroll-thumb-hover: rgba(15,23,42,.32);
+
+    --select-arrow: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23475569' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+    --select-option-bg: #ffffff;
+
+    /* Depth by shadow rather than by film. */
+    --glass:      0 1px 0 rgba(255,255,255,.9) inset, 0 4px 16px rgba(15,23,42,.06);
+    --shadow-pop: 0 16px 48px rgba(15,23,42,.16), 0 0 0 1px rgba(15,23,42,.06);
+    --glow:       0 1px 2px rgba(14,116,144,.24);
+    --glow-hover: 0 2px 8px rgba(14,116,144,.28);
+    --ring:       0 0 0 3px rgba(14,116,144,.20);
+    --frozen-shadow: 8px 0 12px -8px rgba(15,23,42,.18);
+    --figure-glow: none;   /* bloom on white reads as a smudge */
+
+    --grain: 0;            /* nothing to band — the gradients are barely there */
+    --atmosphere:
+      radial-gradient(ellipse 80% 50% at 15% -10%, rgba(14, 116, 144, .05), transparent 60%),
+      radial-gradient(ellipse 60% 60% at 90% 40%, rgba(56, 130, 246, .04), transparent 65%),
+      radial-gradient(ellipse 70% 40% at 50% 110%, rgba(20, 184, 166, .04), transparent 60%);
+
+    color-scheme: light;
   }
 
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    /* Native date pickers, selects and scrollbars follow the theme. */
-    color-scheme: dark;
   }
 
   body {
@@ -64,10 +327,7 @@
     background-color: var(--bg);
     /* Glass needs something behind it to blur. Three fixed glows, nothing
        animated — the atmosphere should be felt, not seen. */
-    background-image:
-      radial-gradient(ellipse 80% 50% at 15% -10%, rgba(45, 212, 218, .08), transparent 60%),
-      radial-gradient(ellipse 60% 60% at 90% 40%, rgba(56, 130, 246, .05), transparent 65%),
-      radial-gradient(ellipse 70% 40% at 50% 110%, rgba(20, 184, 166, .06), transparent 60%);
+    background-image: var(--atmosphere);
     background-attachment: fixed;
     background-repeat: no-repeat;
     position: relative;
@@ -82,7 +342,7 @@
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    opacity: .025;
+    opacity: var(--grain);
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
@@ -104,13 +364,13 @@
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,.12);
+    background: var(--scroll-thumb);
     border-radius: 8px;
     border: 2px solid transparent;
     background-clip: content-box;
   }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.2); background-clip: content-box; }
-  * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.12) transparent; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); background-clip: content-box; }
+  * { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
 }
 
 @layer components {
@@ -149,14 +409,14 @@
     border: 1px solid transparent;
   }
   .btn:disabled {
-    background: rgba(255,255,255,.09);
+    background: var(--disabled-fill);
     color: var(--faint);
     box-shadow: none;
   }
 
   .btn-secondary {
     @apply btn-base;
-    background: rgba(0,0,0,.22);
+    background: var(--recessed);
     color: var(--text);
     border: 1px solid var(--border-strong);
   }
@@ -172,7 +432,7 @@
     @apply btn-base;
     background: var(--red-soft);
     color: var(--red);
-    border: 1px solid rgba(251,113,133,.4);
+    border: 1px solid var(--red-line);
   }
 
   .btn-sm {
@@ -192,12 +452,14 @@
   .icon-btn-danger { @apply icon-btn; }
 
   /* ---------------------------------------------------------------- forms */
-  /* Fields sit darker than the glass so they read as recessed. */
+  /* On dark, fields sit deeper than the glass so they read as recessed. On
+     light they go solid white against the tinted page — same intent, opposite
+     direction, which is why this reads a role token and not a colour. */
   .input {
     @apply w-full text-sm;
     padding: 0.5rem 0.75rem;
     border-radius: 9px;
-    background: rgba(0,0,0,.28);
+    background: var(--field);
     border: 1px solid var(--border-strong);
     color: var(--text);
     transition: background-color 140ms var(--ease-out),
@@ -207,19 +469,19 @@
   .input::placeholder { color: var(--faint); }
   .input:focus {
     outline: none;
-    background: rgba(0,0,0,.4);
+    background: var(--field-focus);
     border-color: var(--accent-line);
     box-shadow: var(--ring);
   }
-  .input:disabled { background: rgba(0,0,0,.15); color: var(--faint); }
+  .input:disabled { background: var(--field-disabled); color: var(--faint); }
 
   select.input {
     @apply cursor-pointer appearance-none bg-no-repeat pr-8;
-    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%2398a2b8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 8 4 4 4-4'/%3E%3C/svg%3E");
+    background-image: var(--select-arrow);
     background-position: right 0.5rem center;
     background-size: 1.15rem;
   }
-  select.input option { background: #101a22; color: var(--text); }
+  select.input option { background: var(--select-option-bg); color: var(--text); }
 
   .input-sm { @apply px-2 py-1 text-xs; border-radius: 7px; }
 
@@ -259,10 +521,10 @@
      opaque enough to read as a panel without needing to sample what's behind. */
   .panel {
     border-radius: var(--radius);
-    background: rgba(255, 255, 255, .035);
+    background: var(--panel);
     border: 1px solid var(--glass-border);
     border-top-color: var(--glass-edge);
-    box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 4px 16px rgba(0,0,0,.3);
+    box-shadow: var(--panel-shadow);
   }
 
   /* ---------------------------------------------------------------- tables */
@@ -306,7 +568,7 @@
 
   .chip {
     @apply inline-flex items-center gap-1 rounded-full px-2 py-1 text-2xs font-medium;
-    background: rgba(0,0,0,.22);
+    background: var(--recessed);
     border: 1px solid var(--border);
     color: var(--muted);
     transition: background-color 140ms var(--ease-out),
@@ -324,15 +586,15 @@
 
   /* ---------------------------------------------------------------- alerts */
   .alert { @apply flex gap-3 p-4 text-sm; border-radius: 9px; border: 1px solid; }
-  .alert-success { @apply alert; background: var(--green-soft); border-color: rgba(52,211,153,.22);  color: #a7f3d0; }
-  .alert-error   { @apply alert; background: var(--red-soft);   border-color: rgba(251,113,133,.22); color: #fecdd3; }
-  .alert-warn    { @apply alert; background: var(--amber-soft); border-color: rgba(251,191,36,.22);  color: #fef3c7; }
-  .alert-info    { @apply alert; background: var(--accent-soft);border-color: var(--accent-line);    color: #cffafe; }
+  .alert-success { @apply alert; background: var(--green-soft); border-color: var(--green-line); color: var(--green-ink); }
+  .alert-error   { @apply alert; background: var(--red-soft);   border-color: var(--red-line);   color: var(--red-ink); }
+  .alert-warn    { @apply alert; background: var(--amber-soft); border-color: var(--amber-line); color: var(--amber-ink); }
+  .alert-info    { @apply alert; background: var(--accent-soft);border-color: var(--accent-line);color: var(--info-ink); }
 
   /* ---------------------------------------------------------------- overlays */
   .overlay {
     @apply fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4;
-    background: rgba(4, 8, 12, .68);
+    background: var(--overlay);
     -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
     animation: fade-in 140ms var(--ease-out);
@@ -341,7 +603,7 @@
   .modal {
     @apply w-full p-5 my-4 sm:my-8 sm:p-6;
     border-radius: var(--radius);
-    background: rgba(13, 22, 30, .96);
+    background: var(--modal);
     -webkit-backdrop-filter: blur(24px);
     backdrop-filter: blur(24px);
     border: 1px solid var(--glass-border);
@@ -383,13 +645,33 @@
     background: var(--sticky) !important;
   }
   /* The depth cue that tells you the column is floating above the scroll. */
-  .frozen-edge { box-shadow: 8px 0 12px -8px rgba(0,0,0,.9); }
+  .frozen-edge { box-shadow: var(--frozen-shadow); }
 
-  /* Key figures glow faintly so the eye lands on them first. */
+  /* Key figures glow faintly so the eye lands on them first. On light the
+     glow is off — bloom on white reads as a printing smudge, not emphasis. */
   .figure-key {
     color: var(--accent);
-    text-shadow: 0 0 12px rgba(34,211,238,.35);
+    text-shadow: var(--figure-glow);
   }
+
+  /* Inline literals — env var names, file paths. Was `bg-black/30`, which is
+     invisible on a light page. */
+  .code-chip {
+    @apply rounded px-1 font-mono;
+    background: var(--code-chip);
+  }
+
+  /* The nav rail and the drawer scrim behind it. */
+  .rail-surface { background: var(--rail); }
+  .rail-scrim   { background: var(--overlay); }
+
+  /* The lockup is artwork, not text — it can't recolour itself from a token,
+     so both versions ship and CSS picks one. Done here rather than in JS so
+     the right one is in the very first paint; swapping the src after mount
+     would show the reversed logo for a frame on every page load. */
+  .logo-for-light { display: none; }
+  [data-theme="light"] .logo-for-dark  { display: none; }
+  [data-theme="light"] .logo-for-light { display: block; }
 }
 
 /* ===========================================================================
@@ -417,21 +699,21 @@ button:active:not(:disabled),
 
 @media (hover: hover) and (pointer: fine) {
   .btn:hover:not(:disabled) {
-    background: #67e8f9;
-    box-shadow: 0 0 28px rgba(34,211,238,.38);
+    background: var(--accent-hover);
+    box-shadow: var(--glow-hover);
   }
   .btn-secondary:hover:not(:disabled) {
-    background: rgba(255,255,255,.06);
+    background: var(--hover);
     border-color: var(--border-strong);
   }
-  .btn-ghost:hover:not(:disabled) { background: rgba(34,211,238,.18); }
-  .btn-danger:hover:not(:disabled) { background: rgba(251,113,133,.2); }
-  .icon-btn:hover { background: rgba(255,255,255,.06); color: var(--text); }
+  .btn-ghost:hover:not(:disabled) { background: var(--hover-ghost); }
+  .btn-danger:hover:not(:disabled) { background: var(--hover-danger); }
+  .icon-btn:hover { background: var(--hover); color: var(--text); }
   .icon-btn-danger:hover { background: var(--red-soft); color: var(--red); }
   .chip:hover:not(.chip-active) { border-color: var(--border-strong); color: var(--text); }
-  .row:hover { background: rgba(255,255,255,.03); }
+  .row:hover { background: var(--hover-row); }
   .card-interactive:hover { border-color: var(--accent-line); box-shadow: var(--glass), var(--glow); }
-  .nav-link:hover:not(.nav-link-active) { background: rgba(255,255,255,.05); color: var(--text); }
+  .nav-link:hover:not(.nav-link-active) { background: var(--hover-nav); color: var(--text); }
 }
 
 /* Reduced motion means fewer and gentler animations, not zero. */
