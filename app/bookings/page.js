@@ -12,7 +12,8 @@ import { IconUpload, IconPlus, IconCheck, IconAlert } from "@/components/icons";
 import TableToolbar from "@/components/TableToolbar";
 import SortHeader from "@/components/SortHeader";
 import { SelectionProvider, SelectRow, SelectAll, ExportButtons } from "@/components/TableSelection";
-import { readTableQuery, sortRows, searchWhere, dateRangeWhere, paginate } from "@/lib/table-query";
+import { readTableQuery, sortRows, paginate } from "@/lib/table-query";
+import { bookingWhere, SUPPLIERS_ON_BOOKINGS } from "@/lib/booking-filter";
 import { poBalance, describeBalance } from "@/lib/po-allocation";
 import Pagination from "@/components/Pagination";
 
@@ -28,6 +29,11 @@ const PER_PAGE = 25;
 const COLS = [
   { label: "Freight Forwarder", w: 150, key: "forwarder", dir: "asc" },
   { label: "Booking No.", w: 120, sticky: true, key: "number", dir: "asc" },
+  // Immediately after the pinned booking number, so it's the first thing read
+  // once the grid scrolls. It used to appear only inside the PO chip, at the
+  // far right of sixteen columns — you had to go looking for whose cargo a
+  // shipment was carrying.
+  { label: "Supplier", w: 160, key: "supplier", dir: "asc" },
   { label: "Shipping Line", w: 130, key: "line", dir: "asc" },
   { label: "Vessel Name", w: 140, key: "vessel", dir: "asc" },
   { label: "Voyage No.", w: 80, key: "voyage", dir: "asc" },
@@ -48,6 +54,7 @@ const COLS = [
 const SORT_ACCESSORS = {
   forwarder:   b => b.freightForwarder || b.forwarder?.name,
   number:      b => b.number,
+  supplier:    b => b.supplierNames?.[0],
   line:        b => b.shippingLine?.name,
   vessel:      b => b.vessel,
   voyage:      b => b.voyage,
@@ -74,19 +81,20 @@ export default async function Bookings({ searchParams }) {
   // Newest first by default — most people are looking at what just came in.
   const query = readTableQuery(searchParams, { defaultSort: "erd", defaultDir: "desc", perPage: PER_PAGE });
 
-  const where = {
-    ...searchWhere(query.q, [
-      "number", "vessel", "voyage", "pol", "pod", "placeOfDelivery",
-      "freightForwarder", "commodity",
-    ]),
-    ...dateRangeWhere("erd", query.from, query.to),
-  };
+  // Chosen from the toolbar dropdown. Bad values simply mean "no filter".
+  const supplierId = Number(searchParams?.supplier) || null;
+  const where = bookingWhere(query, supplierId);
 
-  const [bookings, allPosRaw, total, carriers] = await Promise.all([
+  const [bookings, allPosRaw, total, carriers, suppliers] = await Promise.all([
     prisma.booking.findMany({
       where,
       include: {
         shippingLine: true, forwarder: true, lines: true,
+        // Just enough to name the supplier on each row — the chips and
+        // balances come from allPos below, which is fetched once for the
+        // whole page rather than per booking.
+        poAllocations: { select: { po: { select: { partner: { select: { name: true } } } } } },
+        purchaseOrders: { select: { partner: { select: { name: true } } } },
       },
       orderBy: { id: "desc" },
     }),
@@ -102,11 +110,28 @@ export default async function Bookings({ searchParams }) {
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
+    prisma.partner.findMany(SUPPLIERS_ON_BOOKINGS),
   ]);
+
+  // Whose cargo each shipment is carrying. Off the allocations, deduped —
+  // one supplier can have two orders on the same vessel. Attached before
+  // sorting so the Supplier column can be sorted like any other.
+  const withSuppliers = bookings.map(b => {
+    const names = [...new Set(
+      (b.poAllocations || []).map(a => a.po?.partner?.name).filter(Boolean)
+    )];
+    // Bookings from before the allocation table still have the old pointer.
+    if (!names.length) {
+      for (const p of b.purchaseOrders || []) {
+        if (p.partner?.name && !names.includes(p.partner.name)) names.push(p.partner.name);
+      }
+    }
+    return Object.assign(b, { supplierNames: names });
+  });
 
   // Sorted here rather than in the query: several columns come off relations,
   // and this keeps blanks at the bottom in both directions.
-  const sorted = sortRows(bookings, SORT_ACCESSORS[query.sort] || SORT_ACCESSORS.erd, query.dir);
+  const sorted = sortRows(withSuppliers, SORT_ACCESSORS[query.sort] || SORT_ACCESSORS.erd, query.dir);
   const paged = paginate(sorted, query);
   const rows = paged.rows;
 
@@ -186,7 +211,21 @@ export default async function Bookings({ searchParams }) {
           dateLabel="ERD"
           total={total}
           shown={sorted.length}
-        />
+          extraActive={Boolean(supplierId)}
+        >
+          {/* Pick a supplier, then tick the header box: the selection is
+              exactly that supplier's shipments. Only suppliers that appear on
+              a booking are listed — the full address book would be 300 names
+              of which a handful are relevant. */}
+          <div>
+            <label className="label" htmlFor="tbl-supplier">Supplier</label>
+            <select id="tbl-supplier" name="supplier" defaultValue={supplierId ?? ""}
+                    className="input w-auto max-w-[13rem]">
+              <option value="">All suppliers</option>
+              {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          </div>
+        </TableToolbar>
       )}
 
       {rows.length === 0 ? (
@@ -201,7 +240,7 @@ export default async function Bookings({ searchParams }) {
         {/* Tick rows to export just those; with nothing ticked the buttons take
             everything the filters match, across every page — not just this one. */}
         <div className="mb-3 flex items-center justify-end">
-          <ExportButtons query={query} matching={sorted.length} />
+          <ExportButtons query={query} matching={sorted.length} supplier={supplierId} />
         </div>
 
         {/* Phone: one card per booking. The 16-column grid is unusable at this width. */}
@@ -271,6 +310,20 @@ export default async function Bookings({ searchParams }) {
                         {b.number}
                       </Link>
                     </td>
+                    <td className={td}>
+                      {b.supplierNames.length === 0 ? dash
+                        : b.supplierNames.length === 1 ? b.supplierNames[0]
+                        : (
+                          // Several suppliers share this vessel. Name the first
+                          // and count the rest rather than wrapping the row.
+                          <span title={b.supplierNames.join(", ")}>
+                            {b.supplierNames[0]}
+                            <span className="ml-1 text-2xs text-ink-400">
+                              +{b.supplierNames.length - 1}
+                            </span>
+                          </span>
+                        )}
+                    </td>
                     <td className={td}>{b.shippingLine?.name || dash}</td>
                     <td className={`${td} font-medium text-ink-800`}>{b.vessel || dash}</td>
                     <td className={`${td} tnum`}>{b.voyage || dash}</td>
@@ -317,6 +370,7 @@ export default async function Bookings({ searchParams }) {
           to={paged.to}
           total={paged.total}
           unit="shipment"
+          extra={{ supplier: supplierId }}
         />
         </SelectionProvider>
       )}

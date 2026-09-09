@@ -9,7 +9,8 @@ import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { getCompany } from "@/lib/company";
 const { SHIPMENT_INCLUDE } = require("@/lib/export-columns");
-import { readTableQuery, sortRows, searchWhere, dateRangeWhere } from "@/lib/table-query";
+import { readTableQuery, sortRows } from "@/lib/table-query";
+import { bookingWhere } from "@/lib/booking-filter";
 const { buildShipmentXlsx } = require("@/lib/export-xlsx");
 const { buildShipmentPdf } = require("@/lib/export-pdf");
 
@@ -56,15 +57,13 @@ export async function POST(request) {
   // Note this deliberately does NOT exclude cancelled bookings. The register
   // shows them, so an export of "everything on screen" that quietly dropped
   // them would not match what the person was looking at.
+  const supplierId = Number(form.get("supplier")) || null;
+
   const where = ids.length
     ? { id: { in: ids } }
-    : {
-        ...searchWhere(query.q, [
-          "number", "vessel", "voyage", "pol", "pod", "placeOfDelivery",
-          "freightForwarder", "commodity",
-        ]),
-        ...dateRangeWhere("erd", query.from, query.to),
-      };
+    // Built by the same helper the register uses, so "export everything
+    // matching" cannot drift from the rows that were on screen.
+    : bookingWhere(query, supplierId);
 
   const [found, company] = await Promise.all([
     prisma.booking.findMany({ where, include: SHIPMENT_INCLUDE }),

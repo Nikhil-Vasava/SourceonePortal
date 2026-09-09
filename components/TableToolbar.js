@@ -20,9 +20,13 @@ export default function TableToolbar({
   unit = "row",
   total,
   shown,
+  // A filter supplied via `children` that the toolbar can't see for itself —
+  // without it, choosing a supplier that happens to match every row would hide
+  // the Clear button and leave no way back to the unfiltered list.
+  extraActive = false,
   children,
 }) {
-  const filtered = shown !== total;
+  const filtered = shown !== total || extraActive;
 
   return (
     <form action={action} method="get" className="mb-4">

@@ -89,7 +89,7 @@ export function SelectAll() {
  * With rows ticked, exports exactly those. With none ticked, exports the whole
  * filtered view — which is what "filter, then export" is meant to do.
  */
-export function ExportButtons({ query, matching, endpoint = "/api/export/bookings" }) {
+export function ExportButtons({ query, matching, supplier = null, endpoint = "/api/export/bookings" }) {
   const { selected } = useSelection();
   const [busy, setBusy] = useState(null);
 
@@ -111,6 +111,10 @@ export function ExportButtons({ query, matching, endpoint = "/api/export/booking
 
     add("format", format);
     ["q", "from", "to", "sort", "dir"].forEach(k => add(k, query?.[k]));
+    // The supplier filter lives outside `query`, so it has to be sent
+    // explicitly — otherwise "export all matching" would quietly widen to
+    // every supplier the moment nothing is ticked.
+    add("supplier", supplier);
     selected.forEach(id => add("id", id));
 
     document.body.appendChild(form);
