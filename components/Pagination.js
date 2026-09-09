@@ -18,7 +18,7 @@ function windowed(page, pages, span = 2) {
   return out;
 }
 
-export default function Pagination({ basePath, query, page, pages, from, to, total, unit = "row" }) {
+export default function Pagination({ basePath, query, page, pages, from, to, total, unit = "row", extra = null }) {
   if (pages <= 1) return null;
 
   const link = "rounded-md border border-ink-200 px-2.5 py-1 text-xs transition hover:border-brand-500 hover:text-brand-500";
@@ -32,7 +32,7 @@ export default function Pagination({ basePath, query, page, pages, from, to, tot
 
       <div className="flex items-center gap-1">
         {page > 1
-          ? <Link href={pageHref(basePath, query, page - 1)} className={link} rel="prev">Prev</Link>
+          ? <Link href={pageHref(basePath, query, page - 1, extra)} className={link} rel="prev">Prev</Link>
           : <span className={muted} aria-hidden="true">Prev</span>}
 
         {windowed(page, pages).map((p, i) =>
@@ -44,12 +44,12 @@ export default function Pagination({ basePath, query, page, pages, from, to, tot
               {p}
             </span>
           ) : (
-            <Link key={p} href={pageHref(basePath, query, p)} className={link}>{p}</Link>
+            <Link key={p} href={pageHref(basePath, query, p, extra)} className={link}>{p}</Link>
           )
         )}
 
         {page < pages
-          ? <Link href={pageHref(basePath, query, page + 1)} className={link} rel="next">Next</Link>
+          ? <Link href={pageHref(basePath, query, page + 1, extra)} className={link} rel="next">Next</Link>
           : <span className={muted} aria-hidden="true">Next</span>}
       </div>
     </nav>

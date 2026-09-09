@@ -120,6 +120,12 @@ export const IconMenu = (p) => (
   <Svg {...p}><path d="M3 6h18M3 12h18M3 18h18" /></Svg>
 );
 
+// A list with ticks — a record of what was done.
+export const IconHistory = (p) => (
+  <Svg {...p}><path d="M3.5 5.5 5 7l2.5-2.5" /><path d="M3.5 12 5 13.5 7.5 11" />
+  <path d="M3.5 18.5 5 20l2.5-2.5" /><path d="M11 6h10M11 12.5h10M11 19h7" /></Svg>
+);
+
 /* ------------------------------------------------------------------ theme */
 
 export const IconSun = (p) => (

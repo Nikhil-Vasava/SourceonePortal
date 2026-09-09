@@ -25,17 +25,6 @@ model User {
   approvedPos PurchaseOrder[] @relation("poApprover")
 }
 
-model AuditLog {
-  id        Int      @id @default(autoincrement())
-  userId    Int?
-  user      User?    @relation(fields: [userId], references: [id])
-  action    String
-  entity    String
-  entityId  Int?
-  detail    String?
-  createdAt DateTime @default(now())
-}
-
 // ===== Partners (buyers, vendors, customers, shipping lines, forwarders, CHA) =====
 model Partner {
   id             Int     @id @default(autoincrement())
@@ -200,6 +189,45 @@ model PurchaseOrder {
   extractedJson String?
   fromBookingId Int?
   fromBooking   Booking? @relation("bookingPos", fields: [fromBookingId], references: [id])
+}
+
+/// Who changed what, and when.
+///
+/// Append-only by intention: nothing in the app updates or deletes a row here.
+/// A log that can be edited answers "what happened?" with "whatever someone
+/// wanted it to say", so entries are written once and left alone — including
+/// when the record they describe is later deleted, which is exactly the case
+/// you most want a trail for.
+///
+/// The actor's name and role are copied in flat rather than only referenced.
+/// If a staff member is later removed, "NZ2609_004 approved by Nikhil Patel
+/// (ADMIN)" must still read that way instead of turning into a dangling id.
+model AuditLog {
+  id       Int      @id @default(autoincrement())
+  at       DateTime @default(now())
+
+  userId   Int?
+  user     User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userName String                        // copied at write time, see above
+  userRole String
+
+  action   String   // CREATE | UPDATE | DELETE | APPROVE | UNAPPROVE | EMAIL | LINK | UNLINK | IMPORT | RESET
+  entity   String   // PurchaseOrder | Booking | Partner | Product | User | Setting | …
+  entityId Int?
+  label    String   // how a person refers to it: "NZ2609_004", "276694268"
+
+  /// One plain sentence, written when the event happens. The page reads this,
+  /// so it never has to guess what a row meant.
+  summary  String
+
+  /// The fields that actually changed: [{ field, from, to }]. Only what moved,
+  /// never the whole record — a diff of 40 unchanged columns is how an audit
+  /// log becomes unreadable. Null for creates and deletes.
+  changes  Json?
+
+  @@index([at])
+  @@index([entity, entityId])
+  @@index([userId])
 }
 
 /// How much of a purchase order is carried by one booking.

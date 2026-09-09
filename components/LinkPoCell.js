@@ -1,13 +1,37 @@
 "use client";
-import { useFormStatus } from "react-dom";
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { IconX, IconDoc } from "@/components/icons";
 
-function SaveBtn() {
-  const { pending } = useFormStatus();
-  return <button disabled={pending} className="btn btn-sm">{pending ? "…" : "Save"}</button>;
-}
-
 export default function LinkPoCell({ booking, allPos, linkAction, unlinkAction }) {
+  const router = useRouter();
+  const formRef = useRef(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const inFlight = useRef(false);
+
+  // Linking can legitimately refuse — the booking may be full, or the order
+  // already fully placed. `<form action={fn}>` gives the client no way to hear
+  // that, so the button would just do nothing and look broken. Calling the
+  // action directly gets the answer back.
+  async function link(e) {
+    e.preventDefault();
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setBusy(true);
+    setError("");
+    try {
+      const res = await linkAction(new FormData(formRef.current));
+      if (res?.error) setError(res.error);
+      else { formRef.current?.reset(); router.refresh(); }
+    } catch (err) {
+      setError(err?.message || "Couldn't attach that order.");
+    } finally {
+      inFlight.current = false;
+      setBusy(false);
+    }
+  }
+
   const linked = booking.purchaseOrders || [];
   const linkedIds = new Set(linked.map(p => p.id));
   // A PO can go on several bookings — 40 loads might sail as 10 + 7 + 15 + 8.
@@ -41,7 +65,7 @@ export default function LinkPoCell({ booking, allPos, linkAction, unlinkAction }
         </div>
       ))}
 
-      <form action={linkAction} className="flex items-center gap-1">
+      <form ref={formRef} onSubmit={link} className="flex items-center gap-1">
         <input type="hidden" name="bookingId" value={booking.id} />
         <select name="poId" required defaultValue="" className="input input-sm w-full">
           <option value="" disabled>
@@ -54,8 +78,12 @@ export default function LinkPoCell({ booking, allPos, linkAction, unlinkAction }
             </option>
           ))}
         </select>
-        <SaveBtn />
+        <button disabled={busy} className="btn btn-sm">{busy ? "…" : "Save"}</button>
       </form>
+
+      {error && (
+        <p className="text-2xs leading-snug text-red-600" role="alert">{error}</p>
+      )}
     </div>
   );
 }

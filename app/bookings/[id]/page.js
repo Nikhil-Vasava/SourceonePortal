@@ -48,16 +48,22 @@ export default async function BookingDetail({ params, searchParams }) {
   });
   if (!b) notFound();
 
-  const [suppliers, products] = await Promise.all([
+  const [suppliers, products, carriers] = await Promise.all([
     prisma.partner.findMany({ where: { type: { in: ["VENDOR", "BUYER"] }, active: true }, orderBy: { name: "asc" } }),
     prisma.product.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
+    prisma.partner.findMany({
+      where: { type: "SHIPPING_LINE", active: true },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
   ]);
 
   return (
     <div>
       <PageHeader title={b.number} subtitle={<span>Booking · <Badge value={b.status} />{b.sourceFile && <span className="ml-2 text-xs text-ink-400">imported from {b.sourceFile}</span>}</span>}
         action={<div className="flex flex-wrap gap-2">
-          <EditBookingModal booking={JSON.parse(JSON.stringify(b))} action={updateBookingAction} />
+          <EditBookingModal booking={JSON.parse(JSON.stringify(b))} action={updateBookingAction}
+                            seePrices={seePrices} carriers={carriers} />
           {(FLOW[b.status] || []).map(s => (
             <form key={s} action={setStatus}>
               <input type="hidden" name="id" value={b.id} /><input type="hidden" name="status" value={s} />

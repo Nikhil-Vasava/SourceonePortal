@@ -13,6 +13,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   IconDashboard, IconPurchase, IconShip, IconFactory,
   IconHandshake, IconBook, IconUsers, IconLogout, IconSettings, IconX, IconClock,
+  IconHistory,
 } from "@/components/icons";
 import Logo from "@/components/Logo";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -20,7 +21,9 @@ import ThemeToggle from "@/components/ThemeToggle";
 const NAV = [
   { section: "Operations", items: [
     { href: "/", label: "Dashboard", Icon: IconDashboard },
-    { href: "/purchase", label: "Purchase", Icon: IconPurchase, role: ["ADMIN", "PURCHASE"] },
+    // Open to everyone — operations need to see which orders exist and where
+    // they're sailing. The page itself hides the value and the PDF.
+    { href: "/purchase", label: "Purchase", Icon: IconPurchase },
     { href: "/bookings", label: "Booking", Icon: IconShip },
     { href: "/tracking", label: "Tracking", Icon: IconClock },
   ]},
@@ -31,6 +34,7 @@ const NAV = [
   { section: "Setup", items: [
     { href: "/info", label: "Info", Icon: IconBook },
     { href: "/users", label: "Users", Icon: IconUsers, role: ["ADMIN"] },
+    { href: "/audit", label: "Audit Trail", Icon: IconHistory, role: ["ADMIN"] },
     { href: "/settings", label: "Settings", Icon: IconSettings, role: ["ADMIN"] },
   ]},
 ];

@@ -82,7 +82,7 @@ export default async function Bookings({ searchParams }) {
     ...dateRangeWhere("erd", query.from, query.to),
   };
 
-  const [bookings, allPosRaw, total] = await Promise.all([
+  const [bookings, allPosRaw, total, carriers] = await Promise.all([
     prisma.booking.findMany({
       where,
       include: {
@@ -95,6 +95,13 @@ export default async function Bookings({ searchParams }) {
       orderBy: { id: "desc" },
     }),
     prisma.booking.count(),
+    // For the carrier picker in the edit modal. Inactive lines are left out —
+    // the same rule the rest of the app uses for dropdowns.
+    prisma.partner.findMany({
+      where: { type: "SHIPPING_LINE", active: true },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
   ]);
 
   // Sorted here rather than in the query: several columns come off relations,
@@ -209,7 +216,7 @@ export default async function Bookings({ searchParams }) {
                   linkAction={linkPoAction}
                   unlinkAction={unlinkPoAction}
                 />
-                <EditBookingModal booking={plain(b)} action={updateBookingAction} seePrices={seePrices} />
+                <EditBookingModal booking={plain(b)} action={updateBookingAction} seePrices={seePrices} carriers={carriers} />
               </div>
             </BookingCard>
           ))}
@@ -292,7 +299,7 @@ export default async function Bookings({ searchParams }) {
                       />
                     </td>
                     <td className={td}>
-                      <EditBookingModal booking={plain(b)} action={updateBookingAction} seePrices={seePrices} />
+                      <EditBookingModal booking={plain(b)} action={updateBookingAction} seePrices={seePrices} carriers={carriers} />
                     </td>
                   </tr>
                 ))}

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
-import { requireRole } from "@/lib/auth";
+import { requireUser, canSeePrices } from "@/lib/auth";
 import { fdate } from "@/lib/util";
 import { PageHeader, Empty, Badge } from "@/components/ui";
 import { deletePoAction } from "@/lib/actions-po";
@@ -17,13 +17,14 @@ import { valueSortKey } from "@/lib/po-value";
 import { poBalance, describeBalance } from "@/lib/po-allocation";
 
 // `key` sorts the row; `dir` is the direction the first click uses.
+// `priced` marks the columns only purchase staff and admins may see.
 const COLS = [
   { label: "P.O. No.", key: "number", dir: "asc" },
   { label: "Date", key: "date", dir: "desc" },
   { label: "Supplier", key: "supplier", dir: "asc" },
   { label: "Products", key: "products", dir: "asc" },
   { label: "Qty", key: "qty", dir: "desc" },
-  { label: "Value", key: "value", dir: "desc" },
+  { label: "Value", key: "value", dir: "desc", priced: true },
   { label: "Pricing", key: "pricing", dir: "asc" },
   { label: "Shipments", key: "booking", dir: "asc" },
   { label: "Source", key: "source", dir: "asc" },
@@ -46,10 +47,17 @@ const SORT_ACCESSORS = {
 export const dynamic = "force-dynamic";
 
 export default async function Purchase({ searchParams }) {
-  // Purchase orders are priced documents end to end — the table, the PDF and
-  // the email all carry commercials — so the whole section is limited to the
-  // people allowed to see them rather than blanked field by field.
-  const user = requireRole("ADMIN", "PURCHASE");
+  // Everyone can see WHICH orders exist, for what product, in what quantity and
+  // on which vessels — operations need that to do their job. What they can't
+  // see is what any of it cost.
+  //
+  // `seePrices` hides the VALUE column and the PDF button. The PDF is not an
+  // afterthought here: it prints the rate, so leaving that button visible would
+  // hand back everything the column hides. The write actions are hidden too,
+  // and each one re-checks the role server-side — a hidden button is not a
+  // permission check.
+  const user = requireUser();
+  const seePrices = canSeePrices(user);
   const isAdmin = user.role === "ADMIN";
 
   const query = readTableQuery(searchParams, { defaultSort: "date", defaultDir: "desc" });
@@ -71,15 +79,25 @@ export default async function Purchase({ searchParams }) {
     prisma.purchaseOrder.count(),
   ]);
 
-  const pos = sortRows(posRaw, SORT_ACCESSORS[query.sort] || SORT_ACCESSORS.date, query.dir);
+  // Sorting by a column you can't see still tells you what's in it: order the
+  // list by value and the most expensive order is at the top. The header is
+  // hidden, but ?sort=value in the address bar isn't, so refuse it here.
+  const sortKey = (!seePrices && query.sort === "value") ? "date" : query.sort;
+  const pos = sortRows(posRaw, SORT_ACCESSORS[sortKey] || SORT_ACCESSORS.date, query.dir);
 
   return (
     <div>
-      <PageHeader title="Purchase Orders" subtitle="Create purchase orders here, then attach them to a booking on the Booking tab"
-        action={<div className="flex gap-2">
-          <Link href="/purchase/import" className="btn">⬆ Import PO</Link>
-          <Link href="/purchase/new" className="btn-secondary">+ Generate PO</Link>
-        </div>} />
+      <PageHeader
+        title="Purchase Orders"
+        subtitle={seePrices
+          ? "Create purchase orders here, then attach them to a booking on the Booking tab"
+          : "Orders raised by the purchase team. Values are not shown on your account."}
+        action={seePrices ? (
+          <div className="flex gap-2">
+            <Link href="/purchase/import" className="btn">⬆ Import PO</Link>
+            <Link href="/purchase/new" className="btn-secondary">+ Generate PO</Link>
+          </div>
+        ) : null} />
 
       {(searchParams?.created || searchParams?.imported) && (
         <div className="alert-success mb-5">
@@ -116,11 +134,11 @@ export default async function Purchase({ searchParams }) {
         <div className="card overflow-x-auto p-0">
           <table className="min-w-full divide-y divide-ink-200">
             <thead className="bg-sticky"><tr>
-              {COLS.map(c => (
+              {COLS.filter(c => seePrices || !c.priced).map(c => (
                 <SortHeader key={c.key} column={c.key} label={c.label} query={query}
                             basePath="/purchase" naturalDir={c.dir} className="th" />
               ))}
-              {["PDF", ""].map(h => <th key={h} className="th">{h}</th>)}
+              {seePrices && ["PDF", ""].map(h => <th key={h} className="th">{h}</th>)}
             </tr></thead>
             <tbody className="divide-y divide-ink-100">
               {pos.map(po => (
@@ -134,9 +152,11 @@ export default async function Purchase({ searchParams }) {
                   <td className="td whitespace-nowrap">
                     {po.lines.map(l => <div key={l.id}>{l.qty} {l.uom}</div>)}
                   </td>
-                  <td className="td whitespace-nowrap">
-                    <PoValue po={po} />
-                  </td>
+                  {seePrices && (
+                    <td className="td whitespace-nowrap">
+                      <PoValue po={po} />
+                    </td>
+                  )}
                   <td className="td">{po.shippingTerms || "—"}</td>
                   <td className="td">
                     {/* A PO can sail on several vessels — show every one, plus
@@ -179,6 +199,7 @@ export default async function Purchase({ searchParams }) {
                       : <span className="text-ink-400">manual</span>}
                   </td>
                   <td className="td"><Badge value={po.status} /></td>
+                  {seePrices && (
                   <td className="td">
                     <div className="flex items-center gap-1.5">
                       <a href={`/api/po/${po.id}`} target="_blank" rel="noreferrer" className="btn-secondary whitespace-nowrap">📄 Open</a>
@@ -222,12 +243,15 @@ export default async function Purchase({ searchParams }) {
                       )}
                     </div>
                   </td>
+                  )}
+                  {seePrices && (
                   <td className="td">
                     <form action={deletePoAction}>
                       <input type="hidden" name="id" value={po.id} />
                       <button className="text-xs text-red-500" title="Delete PO">✕</button>
                     </form>
                   </td>
+                  )}
                 </tr>
               ))}
             </tbody>

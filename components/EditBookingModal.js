@@ -7,7 +7,7 @@ import { useModalForm } from "@/lib/use-modal-form";
 
 const d = (v) => (v ? String(v).slice(0, 10) : "");
 
-export default function EditBookingModal({ booking, action, seePrices = false }) {
+export default function EditBookingModal({ booking, action, seePrices = false, carriers = [] }) {
   const [open, setOpen] = useState(false);
   const b = booking;
 
@@ -52,9 +52,29 @@ export default function EditBookingModal({ booking, action, seePrices = false })
             <form ref={formRef} onSubmit={submit} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <input type="hidden" name="id" value={b.id} />
 
+              {/* The carrier is a record in Info, not free text, so the name on
+                  a booking always matches the one on the tracking sheet and the
+                  export. Add a missing line under Info → Shipping Lines.
+
+                  Rendered only when a list was supplied. An empty select would
+                  offer nothing but "not set", which is a way to lose the
+                  carrier, not a way to edit it. */}
+              {carriers.length > 0 && (
+                <div>
+                  <span className="label">Shipping Line</span>
+                  <select name="shippingLine" defaultValue={b.shippingLineId ?? ""} className="input">
+                    <option value="">— not set —</option>
+                    {carriers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+              )}
               <div><span className="label">Freight Forwarder</span><input name="freightForwarder" defaultValue={b.freightForwarder || ""} className="input" /></div>
-              <div><span className="label">Booking No.</span><input name="number" defaultValue={b.number} className="input" /></div>
-              <div className="col-span-2"><span className="label">Vessel Name</span><input name="vessel" defaultValue={b.vessel || ""} className="input" /></div>
+              <div className={carriers.length ? "col-span-2" : "col-span-3"}>
+                <span className="label">Booking No.</span>
+                <input name="number" defaultValue={b.number} className="input" />
+              </div>
+
+              <div className="col-span-4"><span className="label">Vessel Name</span><input name="vessel" defaultValue={b.vessel || ""} className="input" /></div>
 
               <div><span className="label">Voyage No.</span><input name="voyage" defaultValue={b.voyage || ""} className="input" /></div>
               <div><span className="label">Port of Loading</span><input name="pol" defaultValue={b.pol || ""} className="input" /></div>
